@@ -10,8 +10,8 @@ run on-device (CPU / small GPU).
 1. **No runtime NLP dependencies.** The shipped inference path may not import
    MeCab/fugashi/SudachiPy/spaCy/etc. Classical tools MAY be used offline for
    silver-data generation, but only under `tools/` and clearly labeled.
-   (See docs/DECISIONS.md ADR-007 — currently OPEN; confirm with the human
-   before adding any such tool.)
+   (See docs/DECISIONS.md ADR-007 — ACCEPTED: MeCab/UniDic offline for the
+   deterministic labels, LLM teacher for glosses/translations/grammar.)
 2. **From-scratch model code.** `src/kanjiland/model/` uses raw PyTorch only —
    no HuggingFace `transformers` in the model or training loop. HF `datasets`
    is acceptable for corpus downloading in `src/kanjiland/data/`.

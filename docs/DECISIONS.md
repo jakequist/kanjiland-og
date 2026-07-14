@@ -29,16 +29,45 @@ dictionaries.
 System splits documents into paragraphs; token IDs reset per paragraph;
 paragraphs annotated independently (bounded context, parallelizable).
 
-## ADR-007 — Supervision source for annotations (OPEN — decide before M7)
+## ADR-007 — Supervision source for annotations (ACCEPTED — hybrid)
 The model must learn segmentation/ruby/gloss/grammar, so training labels
 must come from somewhere. "No external NLP dependencies" is interpreted as a
-RUNTIME constraint. Options for offline label generation:
+RUNTIME constraint (see ADR-010, rule #1): it governs the shipped inference
+path only. Offline silver-label generation is unconstrained by it, so all
+four options below preserve the from-scratch model — the choice is purely a
+label-quality / determinism / license tradeoff.
+
+Options considered:
   a) LLM-teacher distillation (quality varies; grammar roles especially)
   b) Existing annotated corpora (UD-Japanese GSD/BCCWJ, furigana corpora)
   c) MeCab/UniDic offline in tools/ (deterministic, high-quality seg+ruby)
   d) Hybrid: (c) for seg/ruby/lemma/pos, (a) for glosses/translations/grammar
-Leaning: (d) — but the human wants to keep the project organic; confirm
-explicitly before adding any classical-NLP tool even under tools/.
+
+DECISION: (d) Hybrid.
+  - Deterministic layer → MeCab + UniDic, offline, under tools/ only:
+    ⟨T⟩ segmentation boundaries, ruby (per maximal kanji run, aligned via
+    UniDic kana readings — ADR-003), dictionary_form (lemma), pos (mapped
+    from UniDic tags to the closed §6 tagset via a versioned mapping table
+    committed under tools/).
+  - Judgment layer → LLM teacher, offline: contextual glosses (⟨T⟩/⟨W⟩),
+    sentence translations (⟨S⟩), grammar-role labels (⟨G⟩).
+  - The linter (strict mode) is the data gate; M7 measures gate pass-rate
+    and human-audits a sample (SPEC §7, ROADMAP M7).
+
+Rationale:
+  - Determinism (rule #6) favors UniDic for the mechanical labels; LLMs
+    hallucinate readings and drift on morpheme boundaries.
+  - Ruby-only-per-kanji-run (ADR-003) needs exact kanji↔reading alignment,
+    which UniDic provides natively and LLMs do not.
+  - Glosses/translations/grammar roles are LLM strengths and beyond MeCab.
+  - License: MeCab (BSD) + UniDic (tri-license) is cleanly redistributable
+    for M10 publication; BCCWJ is not freely redistributable and some
+    UD-Japanese-GSD releases are non-commercial — so (b) is not a base.
+
+Runtime cleanliness (rule #1) is unaffected: every tool here lives under
+tools/ and is never importable by src/kanjiland (enforced by the tools/
+import-guard test). The LLM-teacher prompt/model choice is validated during
+M6 (the KD dry run) but does not reopen this ADR.
 
 ## ADR-008 — Eval stack (ACCEPTED)
 chrF for iteration, COMET (headline), SacreBLEU (comparability). Report all
