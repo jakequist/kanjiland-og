@@ -1,0 +1,41 @@
+# Baseline Ja->En translation model (M3). One config file per experiment;
+# copy + rename for variants (e.g. m5_rope_seed1.yaml).
+run_name: m3-transformer-base
+seed: 1
+
+data:
+  train: data/processed/train.jsonl
+  valid: data/processed/valid.jsonl
+  max_src_len: 128
+  max_tgt_len: 128
+
+tokenizer:
+  path: data/processed/tokenizer-16k.json   # produced in M1
+  vocab_size: 16000                          # ADR-012: revisit in ablations
+
+model:
+  d_model: 512
+  n_heads: 8
+  d_ff: 2048
+  encoder_layers: 6
+  decoder_layers: 6
+  dropout: 0.1
+  pos_encoding: rope            # rope | sinusoidal  (M5 ablation)
+  tie_embeddings: three_way     # three_way | decoder_only | none (M5 ablation)
+  norm: pre                     # pre-LN for training stability
+
+train:
+  tokens_per_batch: 12000       # tune to fill the 4090; watch W&B GPU util
+  grad_accum_steps: 2
+  max_steps: 100000
+  lr: 5.0e-4
+  warmup_steps: 4000            # inverse-sqrt schedule
+  label_smoothing: 0.1
+  precision: bf16
+  compile: true
+  checkpoint_every: 5000
+  eval_every: 2500              # chrF on valid subset
+
+wandb:
+  project: kanjiland
+  tags: [m3, baseline]
