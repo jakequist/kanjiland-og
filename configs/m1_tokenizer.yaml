@@ -1,0 +1,28 @@
+# M1 — joint Ja+En byte-level BPE tokenizer sweep.
+# Trains one tokenizer per vocab size and produces the comparison table that
+# feeds ADR-012 (joint-vs-separate / size). One config file per experiment.
+run_name: m1-tokenizer
+
+seed: 1   # BPE training is deterministic; seed recorded for provenance only.
+
+corpus:
+  ja: data/raw/tatoeba/ja.txt
+  en: data/raw/tatoeba/en.txt
+  max_lines: null        # null = use every line; set an int for quick smoke runs
+
+# ADR-012: joint Ja+En vocabulary. Candidates resolved empirically here (M1
+# tokens/sentence) and confirmed in the M5 ablation.
+vocab_sizes: [8000, 16000, 32000]
+
+pretokenizer: script_aware   # see tokenizer/pretokenize.py
+
+output:
+  dir: data/processed        # writes tokenizer-{8,16,32}k.json
+  report: docs/reports/m1-tokenizer.md
+
+eval:
+  sample_lines: 5000         # per-language sample for tokens/sentence stats
+
+wandb:
+  project: kanjiland
+  tags: [m1, tokenizer]

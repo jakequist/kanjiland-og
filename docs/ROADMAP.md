@@ -4,14 +4,18 @@ Each milestone ends with: passing tests, a W&B report (if training was
 involved), and a short writeup in `docs/reports/`. Milestones are sized to be
 individually completable; don't start Mn+1 with Mn broken.
 
-## M0 — Format library  ← CURRENT
+## M0 — Format library  ✅ DONE
 Record dataclasses, parser, serializer, linter (strict/report/repair modes).
 Round-trip and fuzz tests. Debug pretty-printer (PUA → ⟨T⟩ rendering).
 **Learning targets:** none ML-specific; this is engineering foundation.
 **Done when:** `parse(serialize(x)) == x` property tests pass; linter catches
 every invariant in SPEC §7 with a test per invariant.
 
-## M1 — Tokenizer from scratch
+## M1 — Tokenizer from scratch  ✅ DONE
+Comparison table: docs/reports/m1-tokenizer.md. Artifacts:
+data/processed/tokenizer-{8,16,32}k.json. See ADR-012 for the vocab-strategy
+evidence (final call deferred to M5).
+
 Byte-level BPE trainer + encoder/decoder implemented from scratch (no
 sentencepiece at runtime). Special-token support for PUA separators. Train
 joint Ja+En vocab candidates (8k/16k/32k) on a corpus sample; measure
@@ -21,7 +25,7 @@ byte-level, special-token handling.
 **Done when:** encode/decode round-trips arbitrary UTF-8; trainer reproduces
 expected merges on a toy corpus; vocab-size comparison table produced.
 
-## M2 — Data pipeline
+## M2 — Data pipeline  ← CURRENT
 Download + normalize KFTT, JESC, Tatoeba, JParaCrawl (streamed). Cleaning:
 language ID, length-ratio filters, dedup, similarity scoring (LaBSE) for
 JParaCrawl. Paragraph/sentence segmentation policy. Corpus stats notebook.

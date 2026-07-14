@@ -67,6 +67,9 @@ coverage/
 .env.*
 !.env.example
 
+# ===== W&B =====
+wandb/
+
 # ===== OS / Editors =====
 .DS_Store
 Thumbs.db

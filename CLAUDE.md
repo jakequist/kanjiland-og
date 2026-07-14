@@ -66,9 +66,10 @@ uv run python scripts/train.py --config configs/<name>.yaml
 
 ## Current status
 
-Milestone: **M0 — format library**. See docs/ROADMAP.md for the full plan
-and docs/DECISIONS.md for open questions (grammar-rule inventory scope,
-silver-data supervision source, tokenizer vocab strategy).
+Milestone: **M2 — data pipeline**. M0 (format library) and M1 (from-scratch
+byte-level BPE tokenizer) are done. See docs/ROADMAP.md for the full plan and
+docs/DECISIONS.md for open questions (grammar-rule inventory scope; tokenizer
+vocab strategy — ADR-012, M1 evidence in, final call at M5).
 
 ## Key context from design discussions
 

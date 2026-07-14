@@ -87,6 +87,17 @@ inventory itself in progress)
 ⟨G⟩ rule_ids come from docs/GRAMMAR_RULES.md; version pinned in every
 file header. Inventory must be frozen at some version before M7 data gen.
 
-## ADR-012 — Tokenizer vocab strategy (OPEN — decide during M1)
+## ADR-012 — Tokenizer vocab strategy (OPEN — M1 evidence in; final call at M5)
 Joint Ja+En vocab vs separate; size 8k/16k/32k. Resolve empirically via the
 M1 comparison + M5 ablation.
+
+M1 evidence (docs/reports/m1-tokenizer.md, joint vocab, script-aware
+pre-tokenizer, Tatoeba): tokens/sentence falls monotonically with vocab size
+for both languages but with clear diminishing returns — the 8k→16k gain is
+larger than 16k→32k, and Japanese (denser script) benefits more than English
+at every size. A joint vocabulary is used as the working default: it lets the
+encoder/decoder share embeddings (ADR-010 tie-embeddings ablation) and keeps
+one artifact. All three sizes are kept on disk so the M5 ablation can sweep
+vocab size (and joint-vs-separate) against downstream chrF/COMET before this
+ADR is closed. Not resolving now — sequence length is only a proxy; the M5
+translation-quality numbers decide.
