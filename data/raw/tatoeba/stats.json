@@ -1,0 +1,11 @@
+{
+  "pair_count": 117022,
+  "ja_char_len_mean": 14.95,
+  "ja_char_len_p50": 14,
+  "ja_char_len_p95": 25,
+  "en_word_len_mean": 6.4,
+  "en_word_len_p50": 6,
+  "en_word_len_p95": 11,
+  "source_url": "https://www.manythings.org/anki/jpn-eng.zip",
+  "sha256": "af9e98121df9ce9c8a258bf81033905cb38f31bbc26432f3354d8ace316f20ee"
+}

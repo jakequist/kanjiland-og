@@ -79,7 +79,12 @@ def download(
 
     print(f"downloading {url} ...", file=sys.stderr)
     import requests  # local: keeps this optional (belongs to data extra)
-    resp = requests.get(url, timeout=60)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5"
+    }
+    resp = requests.get(url, timeout=60, headers=headers)
     resp.raise_for_status()
     raw = resp.content
     sha256 = hashlib.sha256(raw).hexdigest()
