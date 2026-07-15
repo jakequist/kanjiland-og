@@ -6,6 +6,7 @@ logits = model(src, tgt_in)            # training (teacher forcing)
 """
 
 from .attention import MultiHeadAttention
+from .decode import beam_search, greedy_decode
 from .layers import DecoderLayer, EncoderLayer, FeedForward
 from .positional import RotaryEmbedding, SinusoidalPositionalEncoding
 from .transformer import ModelConfig, Transformer
@@ -19,4 +20,6 @@ __all__ = [
     "FeedForward",
     "RotaryEmbedding",
     "SinusoidalPositionalEncoding",
+    "greedy_decode",
+    "beam_search",
 ]
