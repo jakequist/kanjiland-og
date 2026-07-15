@@ -13,7 +13,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov", "hypothesis", "ruff"]
-eval = ["sacrebleu", "unbabel-comet"]
+eval = ["sacrebleu", "unbabel-comet", "setuptools<80"]  # <80: still ships pkg_resources (COMET/torchmetrics need it)
 data = ["datasets", "requests", "fasttext-wheel", "sentence-transformers"]
 
 # PyTorch CUDA build pin — LINUX ONLY. The default PyPI torch wheel is built

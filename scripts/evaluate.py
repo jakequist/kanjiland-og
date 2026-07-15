@@ -115,7 +115,11 @@ def main() -> None:
             m["bleu"], sig = metrics.bleu(hyps, refs)
         if "comet" in wanted:
             print("  scoring COMET ...", flush=True)
-            m["comet"] = comet.score(srcs, hyps, refs)
+            try:
+                m["comet"] = comet.score(srcs, hyps, refs)
+            except Exception as e:  # never let the heavy metric lose chrF/BLEU
+                print(f"  COMET failed ({type(e).__name__}: {e}); recording null", flush=True)
+                m["comet"] = None
 
         record = {
             "run": run,
