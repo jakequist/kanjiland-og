@@ -143,13 +143,16 @@ def make_dataloader(
     seed: int = 0,
     shuffle: bool = True,
     num_workers: int = 4,
+    pin_memory: bool = False,
 ) -> tuple[DataLoader, TokenBatchSampler]:
+    # pin_memory speeds host->GPU copies but only makes sense for CUDA; leave it
+    # off on MPS/CPU (where it just warns or wastes memory).
     sampler = TokenBatchSampler(dataset.lengths(), tokens_per_batch, seed, shuffle)
     loader = DataLoader(
         dataset,
         batch_sampler=sampler,
         collate_fn=lambda b: collate(b, pad_id),
         num_workers=num_workers,
-        pin_memory=True,
+        pin_memory=pin_memory,
     )
     return loader, sampler

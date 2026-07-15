@@ -21,6 +21,7 @@ import yaml
 from kanjiland.eval.baseline import build_lexicon, translate as baseline_translate
 from kanjiland.model import ModelConfig, Transformer, beam_search, greedy_decode
 from kanjiland.tokenizer import Tokenizer
+from kanjiland.train.device import amp_context, pick_device
 
 
 def _read_pairs(path: Path):
@@ -54,7 +55,7 @@ def model_translate(model, tok, sentences, device, beam, max_src, max_len, batch
         for j, e in enumerate(enc):
             src[j, : len(e)] = torch.tensor(e)
         src = src.to(device)
-        with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=device == "cuda"):
+        with amp_context(device):
             if beam > 1:
                 gen = beam_search(model, src, tok.bos_id, tok.eos_id, tok.pad_id, beam, max_len)
             else:
@@ -77,7 +78,7 @@ def main() -> None:
 
     cfg = yaml.safe_load(args.config.read_text())
     tok = Tokenizer.load(cfg["tokenizer"]["path"])
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = pick_device()
 
     test_path = Path(cfg["data"]["train"]).with_name(f"{args.split}.jsonl")
     ja, en = _read_pairs(test_path)

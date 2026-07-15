@@ -25,6 +25,7 @@ import yaml
 from kanjiland.model import ModelConfig, Transformer
 from kanjiland.tokenizer import Tokenizer
 from kanjiland.train.data import TranslationDataset, make_dataloader
+from kanjiland.train.device import amp_context, pick_device
 from kanjiland.train.loss import label_smoothed_ce
 from kanjiland.train.schedule import lr_at_step
 
@@ -60,7 +61,7 @@ def _valid_loss(
         if i >= max_batches:
             break
         src, tgt = src.to(device), tgt.to(device)
-        with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=device == "cuda"):
+        with amp_context(device):
             logits = model(src, tgt[:, :-1])
         loss, ntok = label_smoothed_ce(logits, tgt[:, 1:], pad_id, smoothing)
         total_loss += loss.item()
@@ -85,7 +86,7 @@ def main() -> None:
     from kanjiland.train.seed import seed_everything
 
     seed_everything(seed)
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = pick_device()
 
     # --- tokenizer + model --------------------------------------------------
     tok = Tokenizer.load(cfg["tokenizer"]["path"])
@@ -116,6 +117,7 @@ def main() -> None:
         tok.pad_id,
         seed=seed,
         num_workers=0 if args.overfit else 4,
+        pin_memory=device == "cuda",
     )
     valid_loader = None
     if not args.overfit:
@@ -127,6 +129,7 @@ def main() -> None:
             seed=seed,
             shuffle=False,
             num_workers=2,
+            pin_memory=device == "cuda",
         )
 
     run = None
@@ -172,7 +175,7 @@ def main() -> None:
         for _ in range(accum):
             src, tgt = fixed_batch if args.overfit else next(batches)
             src, tgt = src.to(device), tgt.to(device)
-            with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=device == "cuda"):
+            with amp_context(device):
                 logits = model(src, tgt[:, :-1])
             loss_sum, ntok = label_smoothed_ce(logits, tgt[:, 1:], tok.pad_id, smoothing)
             per_tok = loss_sum / ntok
