@@ -54,6 +54,13 @@ scripts/         entry points (train.py, translate.py, annotate.py)
   hardcoded in scripts.
 - Docs are living: when we make a design decision, append an ADR to
   docs/DECISIONS.md in the same PR/commit.
+- Comment generously and teach through the code. This is a learning project;
+  the human wants to understand *why* a piece of logic exists, not just what
+  it does. Explain the reasoning, the background concept, and any non-obvious
+  tradeoff or gotcha — especially for ML/NLP algorithms (e.g. why byte-level
+  BPE, why an incremental pair index, what an invariant protects). Prefer a
+  short "why" comment over a restatement of the code. Err on the side of more
+  context, not less.
 
 ## Commands
 

@@ -101,3 +101,47 @@ one artifact. All three sizes are kept on disk so the M5 ablation can sweep
 vocab size (and joint-vs-separate) against downstream chrF/COMET before this
 ADR is closed. Not resolving now — sequence length is only a proxy; the M5
 translation-quality numbers decide.
+
+## ADR-013 — M2 corpus filtering thresholds (ACCEPTED, tunable)
+The parallel corpus (KFTT, JESC, Tatoeba, JParaCrawl) is cleaned by a funnel
+of filters; quality here dominates downstream translation quality. Thresholds
+live in `configs/m2_corpus.yaml` (`FilterConfig`/`LangIDConfig`/`LaBSEConfig`)
+and are logged per-stage in docs/reports/m2-corpus.md. Chosen defaults:
+
+  - Length: ja 1–250 chars, en 1–500. Upper bounds drop run-on/boilerplate that
+    overflows the 128-token model context and is usually misaligned.
+  - Length ratio: en_chars/ja_chars in [0.5, 6.0]. Deliberately asymmetric —
+    Japanese is compact, so real Ja→En pairs have MORE English characters.
+    Measured on KFTT: median ratio ~3.5, p90 ~5.8; a 4.0 cap dropped 33% of
+    good formal pairs, 6.0 drops 8.5% (the genuine misalignment tail, p99 ~12).
+  - Script: ja side must contain kana/kanji; en side must be ≥50% Latin letters.
+    Catches swapped columns and romaji before paying for language ID.
+  - Language ID (fastText lid.176, ADR-014): require ja→`ja`, en→`en` at
+    confidence ≥0.5, but SKIP the check when either side <10 chars — fastText
+    confuses short kanji-heavy Japanese ("何て？") with Chinese and would drop
+    good pairs. On a random Tatoeba sample this over-drop fell from ~22% (short-
+    biased head) to ~1%.
+  - Dedup: exact match after casefolding + removing spaces, global across all
+    sources; stored as 16-byte BLAKE2b digests to fit 25M pairs in ~1.6 GB.
+  - LaBSE semantic filter (ADR-014): JParaCrawl only. Cosine ≥0.6 (validated:
+    aligned pairs score 0.9+, misaligned <0.35). A bicleaner ≥0.5 pre-filter
+    trims the worst before the GPU pass.
+
+These are starting points, not settled science — the ratio band, langid
+threshold, and LaBSE cutoff are the prime candidates for the M2 filtering
+ablation (ROADMAP M2 learning target). Changing a threshold re-runs the build;
+the funnel report quantifies the effect.
+
+## ADR-014 — Offline neural data-filtering tools allowed (ACCEPTED)
+Corpus cleaning uses two learned models offline: fastText `lid.176` (language
+ID) and LaBSE via `sentence-transformers` (cross-lingual similarity). This is
+consistent with the project's constraints:
+  - Rule #1 / ADR-007 (no runtime NLP deps) targets the shipped INFERENCE path
+    and classical Japanese analyzers; these are neither. They run offline to
+    prepare data and are never imported by the model/train/eval runtime.
+  - Rule #2 / ADR-010 (no HF `transformers` in the model) scopes to the
+    from-scratch model + training loop. LaBSE pulls in `transformers`, but only
+    inside `src/kanjiland/data` tooling that never touches the modeling path.
+Both live under `src/kanjiland/data`, are lazily imported, and run on the GPU
+offline. If the modeling path ever imports `transformers`, that is a bug ADR-010
+forbids — worth extending the runtime import-guard test to cover it.

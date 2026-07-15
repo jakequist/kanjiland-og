@@ -14,7 +14,21 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov", "hypothesis", "ruff"]
 eval = ["sacrebleu", "unbabel-comet"]
-data = ["datasets", "requests"]
+data = ["datasets", "requests", "fasttext-wheel", "sentence-transformers"]
+
+# PyTorch CUDA build pin. The default PyPI torch wheel is built against CUDA 13
+# (cu130), which needs a driver >= 580; this box runs driver 545 (CUDA 12.3
+# max). We therefore pull torch from PyTorch's CUDA 12.6 index instead — same
+# torch version, CUDA-12.x runtime, which runs on driver 545 via CUDA
+# minor-version compatibility. If this ever moves to a box with a driver
+# supporting CUDA 13+, drop these two tables to get the default cu130 wheel.
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu126" }
 
 [build-system]
 requires = ["hatchling"]
