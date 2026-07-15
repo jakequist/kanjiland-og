@@ -21,6 +21,7 @@ break by smallest id pair, independent of dict ordering.
 
 from __future__ import annotations
 
+import heapq
 from collections import defaultdict
 from collections.abc import Iterable
 
@@ -86,6 +87,15 @@ def train_bpe(
             pair_counts[p] += f
             pair_words[p].add(wi)
 
+    # Lazy max-heap over pairs, keyed (-count, a, b) so the smallest tuple is the
+    # highest count, ties broken by smallest (a, b) — identical to the old
+    # ``max(..., key=(count, -a, -b))`` but O(log n) per merge instead of an
+    # O(num_pairs) scan every iteration (the whole-corpus scan was the ~60-min
+    # bottleneck on big corpora). Entries go stale when a count changes; we push
+    # the new value and skip stale entries lazily on pop.
+    heap: list[tuple[int, int, int]] = [(-c, a, b) for (a, b), c in pair_counts.items()]
+    heapq.heapify(heap)
+
     merges: list[Pair] = []
     steps = range(num_merges)
     if verbose:
@@ -97,18 +107,27 @@ def train_bpe(
             pass
 
     for k in steps:
-        if not pair_counts:
+        # Pop stale heap entries (whose stored count no longer matches) until the
+        # top is the true current-max pair.
+        best: Pair | None = None
+        while heap:
+            negc, a, b = heap[0]
+            if pair_counts.get((a, b)) == -negc:
+                best = (a, b)
+                break
+            heapq.heappop(heap)
+        if best is None:
             break
-        # Most frequent pair; ties broken by smallest (a, b) for determinism.
-        best = max(pair_counts, key=lambda p: (pair_counts[p], -p[0], -p[1]))
         new_id = BYTE_BASE + k
         a, b = best
         merges.append(best)
 
-        # Only words that currently contain `best` can change. For each, pull
-        # its pair contributions out of the index, merge, then put the new
-        # contributions back — surgically local, so cost scales with how many
-        # words the merge actually touches, not the whole corpus.
+        # Only words that currently contain `best` can change. For each, pull its
+        # pair contributions out of the index, merge, then put the new ones back —
+        # surgically local, so cost scales with how many words the merge touches,
+        # not the whole corpus. `changed` collects every pair whose count moved so
+        # we re-push exactly those to the heap.
+        changed: set[Pair] = set()
         for wi in list(pair_words[best]):
             seq = words[wi]
             f = freqs[wi]
@@ -118,6 +137,7 @@ def train_bpe(
                     pair_counts.pop(p, None)
                 else:
                     pair_counts[p] = c
+                changed.add(p)
                 pw = pair_words.get(p)
                 if pw is not None:
                     pw.discard(wi)
@@ -129,5 +149,11 @@ def train_bpe(
             for p in _adjacent_pairs(new_seq):
                 pair_counts[p] = pair_counts.get(p, 0) + f
                 pair_words.setdefault(p, set()).add(wi)
+                changed.add(p)
+
+        for p in changed:  # re-push only pairs whose count actually changed
+            c = pair_counts.get(p)
+            if c is not None:
+                heapq.heappush(heap, (-c, p[0], p[1]))
 
     return merges
