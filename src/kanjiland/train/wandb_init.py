@@ -69,7 +69,8 @@ def init_run(
     run.config.update({"_run": metadata_payload}, allow_val_change=True)
 
     artifact = wandb.Artifact(
-        name=f"config-{config_path.stem}", type="config",
+        name=f"config-{config_path.stem}",
+        type="config",
         metadata={"path": str(config_path)},
     )
     artifact.add_file(str(config_path))
@@ -111,8 +112,11 @@ def _git_dirty() -> bool | None:
 def _run_git(args: list[str]) -> str | None:
     try:
         out = subprocess.check_output(
-            ["git", *args], cwd=Path(__file__).resolve().parent,
-            stderr=subprocess.DEVNULL, text=True, timeout=5,
+            ["git", *args],
+            cwd=Path(__file__).resolve().parent,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=5,
         )
         return out.strip()
     except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
@@ -133,6 +137,7 @@ def _kanjiland_version() -> str | None:
 def _cuda_available() -> bool:
     try:
         import torch
+
         return torch.cuda.is_available()
     except Exception:
         return False
@@ -141,6 +146,7 @@ def _cuda_available() -> bool:
 def _cuda_device_name() -> str | None:
     try:
         import torch
+
         if torch.cuda.is_available():
             return torch.cuda.get_device_name(0)
     except Exception:

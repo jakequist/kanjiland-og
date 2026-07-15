@@ -82,6 +82,16 @@ def main() -> None:
     ap.add_argument("--download", action="store_true", help="download any missing sources first")
     ap.add_argument("--only", type=str, default=None, help="comma-separated subset of sources")
     ap.add_argument("--max-per-source", type=int, default=None, help="cap pairs read per source")
+    ap.add_argument(
+        "--resume",
+        action="store_true",
+        help="reuse existing phase-1 temp files (skip cheap filters), go straight to LaBSE + split",
+    )
+    ap.add_argument(
+        "--keep-tmp",
+        action="store_true",
+        help="keep _m2_tmp/ after the run (lets you re-run LaBSE at a different threshold)",
+    )
     ap.add_argument("--no-wandb", action="store_true")
     args = ap.parse_args()
 
@@ -114,33 +124,60 @@ def main() -> None:
     seen: set[bytes] = set()
     funnels: list[Funnel] = []
     source_files: list[tuple[str, Path, bool]] = []
+    funnels_json = tmp_dir / "funnels.json"
 
-    # --- phase 1: cheap filters, streamed to per-source temp files ----------
-    for src in source_cfgs:
-        name = src["name"]
-        if args.download:
-            print(f"downloading {name} ...")
-            SOURCES[name].download()
-        print(f"\n=== {name}: cleaning ===", flush=True)
-        pairs = _source_pairs(name, src)
-        if args.max_per_source:
-            pairs = itertools.islice(pairs, args.max_per_source)
-        funnel = Funnel(source=name)
-        kept_path = tmp_dir / f"{name}.jsonl"
-        n = write_jsonl(
-            kept_path,
-            clean_stream(
-                pairs,
-                fcfg,
-                funnel,
-                seen,
-                langid_cfg=lid_cfg,
-                identifier=identifier,
-            ),
+    if args.resume:
+        # Reuse the cheap-filter output from a previous run. Funnel counts come
+        # from funnels.json if present; otherwise reconstruct what we can (kept
+        # = line count, input unknown). Lets us re-run only the expensive LaBSE
+        # + split phases (e.g. after switching LaBSE to fp16, or sweeping the
+        # threshold) without re-doing the ~28M-pair cheap-filter pass.
+        saved = json.loads(funnels_json.read_text()) if funnels_json.exists() else {}
+        for src in source_cfgs:
+            name = src["name"]
+            kept_path = tmp_dir / f"{name}.jsonl"
+            if not kept_path.exists():
+                raise SystemExit(f"--resume: missing {kept_path}; run phase 1 first")
+            if name in saved:
+                d = saved[name]
+                funnel = Funnel(name, d["input_pairs"], dict(d["dropped"]), d["kept"])
+            else:
+                k = sum(1 for _ in kept_path.open(encoding="utf-8"))
+                funnel = Funnel(name, k, {}, k)
+            funnels.append(funnel)
+            source_files.append((name, kept_path, bool(src.get("labse"))))
+        print(f"resumed: reusing phase-1 temp files for {[f.source for f in funnels]}", flush=True)
+    else:
+        # --- phase 1: cheap filters, streamed to per-source temp files ------
+        for src in source_cfgs:
+            name = src["name"]
+            if args.download:
+                print(f"downloading {name} ...")
+                SOURCES[name].download()
+            print(f"\n=== {name}: cleaning ===", flush=True)
+            pairs = _source_pairs(name, src)
+            if args.max_per_source:
+                pairs = itertools.islice(pairs, args.max_per_source)
+            funnel = Funnel(source=name)
+            kept_path = tmp_dir / f"{name}.jsonl"
+            n = write_jsonl(
+                kept_path,
+                clean_stream(
+                    pairs,
+                    fcfg,
+                    funnel,
+                    seen,
+                    langid_cfg=lid_cfg,
+                    identifier=identifier,
+                ),
+            )
+            print(f"  kept {n}/{funnel.input_pairs} after cheap filters", flush=True)
+            funnels.append(funnel)
+            source_files.append((name, kept_path, bool(src.get("labse"))))
+        # Persist funnels so a later --resume run can report accurate drops.
+        funnels_json.write_text(
+            json.dumps({f.source: f.as_dict() for f in funnels}, ensure_ascii=False, indent=2)
         )
-        print(f"  kept {n}/{funnel.input_pairs} after cheap filters", flush=True)
-        funnels.append(funnel)
-        source_files.append((name, kept_path, bool(src.get("labse"))))
 
     # --- phase 2: LaBSE semantic filter for flagged sources -----------------
     if labse_cfg.enabled and any(flag for _, _, flag in source_files):
@@ -198,9 +235,13 @@ def main() -> None:
     print(f"\nwrote {report_path}\n")
     print(report)
 
-    for _, p, _ in source_files:
-        p.unlink(missing_ok=True)
-    tmp_dir.rmdir()
+    if args.keep_tmp:
+        print(f"kept temp files in {tmp_dir} (--keep-tmp)")
+    else:
+        for _, p, _ in source_files:
+            p.unlink(missing_ok=True)
+        funnels_json.unlink(missing_ok=True)
+        tmp_dir.rmdir()
 
     if run is not None:
         for f in funnels:

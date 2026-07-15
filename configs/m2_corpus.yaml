@@ -36,7 +36,8 @@ langid:
 labse:
   enabled: true
   threshold: 0.6
-  batch_size: 256
+  batch_size: 1024          # 4090 has 24GB VRAM; LaBSE is small
+  fp16: true                # ~2x encode throughput; cosine is robust to fp16
 
 split:
   valid_size: 3000

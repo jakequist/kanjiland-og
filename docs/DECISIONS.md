@@ -102,6 +102,14 @@ vocab size (and joint-vs-separate) against downstream chrF/COMET before this
 ADR is closed. Not resolving now — sequence length is only a proxy; the M5
 translation-quality numbers decide.
 
+NOTE (M3): the 16k tokenizer was RETRAINED on a 3M-pair random sample of the M2
+corpus (data/processed/tokenizer-16k.json, docs/reports/m3-tokenizer.md) so
+vocab/merges reflect the real training distribution — this is what M3 trains on.
+The 8k/32k tokenizers are still the M1 raw-Tatoeba bootstrap; retrain them on M2
+as part of M5-ablation prep. (Aside: BPE training on 6M sentences took ~30 min
+in the pure-Python trainer — parallelizing it is the same opportunity as the M2
+langid stage, worth doing before the M5 vocab sweep.)
+
 ## ADR-013 — M2 corpus filtering thresholds (ACCEPTED, tunable)
 The parallel corpus (KFTT, JESC, Tatoeba, JParaCrawl) is cleaned by a funnel
 of filters; quality here dominates downstream translation quality. Thresholds
@@ -131,6 +139,21 @@ These are starting points, not settled science — the ratio band, langid
 threshold, and LaBSE cutoff are the prime candidates for the M2 filtering
 ablation (ROADMAP M2 learning target). Changing a threshold re-runs the build;
 the funnel report quantifies the effect.
+
+M2 result (docs/reports/m2-corpus.md): 29.1M input → 22.1M kept (76.1%).
+JParaCrawl dominates (18.97M of 22.1M ≈ 86%). LaBSE dropped 1.57M of its 20.5M
+post-cheap-filter survivors (7.7%) — modest, because bicleaner ≥0.5 already
+removed most gross noise upstream; the LaBSE cutoff is a natural ablation lever
+(temp files kept under data/processed/_m2_tmp via --keep-tmp so LaBSE can be
+re-thresholded without redoing the ~28M-pair cheap pass). Two consequences the
+funnel makes visible: (1) JParaCrawl's cheap-filter drops are reported as one
+lumped `cheap_filters` column, not per-stage — an artifact of the fp16 LaBSE
+hot-swap resuming from temp files rather than re-running phase 1 (a fresh full
+run restores the breakdown; parallel langid will make that cheap); (2) the
+bicleaner pre-filter happens inside the JParaCrawl reader, so its drops are not
+counted in the funnel at all — worth surfacing if we tune bicleaner.
+Perf note: LaBSE runs fp16 (`LaBSEConfig.fp16`, batch 1024) — ~6.7k pairs/s on
+the 4090, ~2x fp32, with no measurable effect on the 0.6-threshold decisions.
 
 ## ADR-014 — Offline neural data-filtering tools allowed (ACCEPTED)
 Corpus cleaning uses two learned models offline: fastText `lid.176` (language

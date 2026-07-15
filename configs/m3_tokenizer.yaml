@@ -1,0 +1,27 @@
+# M3 prep — retrain the 16k tokenizer on the M2 corpus (not raw Tatoeba).
+# The M1 tokenizers were bootstrapped on 117k raw Tatoeba pairs; the real
+# training distribution is the 22M-pair M2 corpus (NFKC-normalized, skewing
+# long/web because JParaCrawl is ~86%). We retrain 16k on a random 3M-pair
+# sample of it so vocab/merges match what the model actually trains on.
+# (8k/32k retrain deferred to M5-ablation prep — M3 only needs 16k.)
+run_name: m3-tokenizer-16k
+seed: 1
+
+corpus:
+  ja: data/processed/_tok_sample/ja.txt
+  en: data/processed/_tok_sample/en.txt
+  max_lines: null
+
+vocab_sizes: [16000]
+pretokenizer: script_aware
+
+output:
+  dir: data/processed        # overwrites tokenizer-16k.json
+  report: docs/reports/m3-tokenizer.md
+
+eval:
+  sample_lines: 5000
+
+wandb:
+  project: kanjiland
+  tags: [m3, tokenizer]

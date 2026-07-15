@@ -1,0 +1,44 @@
+# Smoke config: tiny model on a small slice, for the overfit-a-batch sanity
+# check and quick loop validation. Uses the M1 8k tokenizer (the 16k retrain is
+# still running); real training uses m3_transformer_base.yaml.
+run_name: m3-smoke
+seed: 1
+
+data:
+  train: data/processed/valid.jsonl   # small slice (3k pairs) stands in as train
+  valid: data/processed/valid.jsonl
+  bin_dir: data/processed/tok_smoke
+  max_src_len: 128
+  max_tgt_len: 128
+
+tokenizer:
+  path: data/processed/tokenizer-8k.json
+  vocab_size: 8000
+
+model:
+  d_model: 256
+  n_heads: 4
+  d_ff: 1024
+  encoder_layers: 4
+  decoder_layers: 4
+  dropout: 0.1
+  pos_encoding: rope
+  tie_embeddings: three_way
+  norm: pre
+
+train:
+  tokens_per_batch: 4000
+  grad_accum_steps: 1
+  max_steps: 200
+  lr: 3.0e-4
+  warmup_steps: 50
+  label_smoothing: 0.1
+  precision: bf16
+  compile: false
+  checkpoint_every: 1000000
+  eval_every: 1000000
+  log_every: 25
+
+wandb:
+  project: kanjiland
+  tags: [m3, smoke]

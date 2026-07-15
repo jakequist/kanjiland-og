@@ -79,7 +79,13 @@ wandb/
 /data/raw/jparacrawl/
 /data/processed/*.jsonl
 /data/processed/_m2_tmp/
+/data/processed/_tok_sample/
+/data/processed/tok/
+/data/processed/tok_smoke/
 /data/models/
+
+# ===== Model checkpoints (large, regenerable) =====
+/checkpoints/
 
 # ===== OS / Editors =====
 .DS_Store
