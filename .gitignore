@@ -94,3 +94,6 @@ Thumbs.db
 
 # Generated ablation configs
 /configs/_generated/
+
+# Run logs (ablation sweeps)
+/logs/
