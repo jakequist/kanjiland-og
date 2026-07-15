@@ -54,12 +54,14 @@ Train transformer-base (~60M) Ja→En.
 **Done when:** trained model beats a word-substitution baseline by a mile and
 produces recognizably fluent English on KFTT test; W&B report with curves.
 
-## M4 — Evaluation harness  ← CURRENT
-SacreBLEU + chrF + COMET runners; standard test sets (KFTT test, WMT);
-seed-variance protocol; results tables auto-generated from W&B.
-**Done when:** one command evaluates any checkpoint and updates a results doc.
+## M4 — Evaluation harness  ✅ DONE
+`scripts/evaluate.py` scores any checkpoint on named test sets (kftt-test,
+m2-test, wmt22, raw jsonl) with chrF + SacreBLEU + COMET and updates
+docs/reports/m4-results.{json,md}; ≥2 seeds auto-aggregate to mean±std
+(seed-variance protocol, ADR-008). M3 model @ beam 4 (chrF/BLEU/COMET):
+KFTT-test 47.2/20.5/0.77, m2-test 55.3/30.4/0.81, WMT22 42.2/16.3/0.76.
 
-## M5 — Ablations round 1 + writeup
+## M5 — Ablations round 1 + writeup  ← CURRENT
 Vocab size; tied vs untied embeddings; RoPE vs sinusoidal (incl. length
 extrapolation eval). ≥2 seeds each.
 **Done when:** `docs/reports/ablations-1.md` with tables, error bars,

@@ -78,9 +78,11 @@ uv run python scripts/train.py --config configs/<name>.yaml
 
 ## Current status
 
-Milestone: **M4 — evaluation harness**. M0 (format), M1 (BPE tokenizer), M2
-(22.1M-pair corpus), and M3 (52.3M from-scratch transformer, KFTT-test chrF 47.2
-vs 11.9 baseline) are done. See docs/ROADMAP.md for the full plan and
+Milestone: **M5 — ablations round 1**. M0 (format), M1 (BPE tokenizer), M2
+(22.1M-pair corpus), M3 (52.3M from-scratch transformer, KFTT-test chrF 47.2 vs
+11.9 baseline), and M4 (chrF/BLEU/COMET eval harness + seed-variance protocol,
+docs/reports/m4-results.md) are done. Work happens on per-milestone branches
+(`m5`, …). See docs/ROADMAP.md for the full plan and
 docs/DECISIONS.md for open questions (grammar-rule inventory scope; tokenizer
 vocab strategy — ADR-012, final call at M5). Corpus skews long/web-domain
 (JParaCrawl ~86%), so KFTT formal-domain eval trails the mixed-test number by

@@ -1,0 +1,41 @@
+[
+  {
+    "run": "m3-transformer-base",
+    "test_set": "kftt-test",
+    "seed": 1,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 47.17133269088712,
+      "bleu": 20.49650898480747,
+      "comet": 0.7669948809362691
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m3-transformer-base",
+    "test_set": "m2-test",
+    "seed": 1,
+    "beam": 4,
+    "n": 3000,
+    "metrics": {
+      "chrf": 55.286119693685364,
+      "bleu": 30.39925997535726,
+      "comet": 0.814729679385821
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m3-transformer-base",
+    "test_set": "wmt22",
+    "seed": 1,
+    "beam": 4,
+    "n": 2008,
+    "metrics": {
+      "chrf": 42.16609624049303,
+      "bleu": 16.312478296486336,
+      "comet": 0.7570802190478342
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  }
+]
