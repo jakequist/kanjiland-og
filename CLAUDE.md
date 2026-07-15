@@ -73,10 +73,13 @@ uv run python scripts/train.py --config configs/<name>.yaml
 
 ## Current status
 
-Milestone: **M2 — data pipeline**. M0 (format library) and M1 (from-scratch
-byte-level BPE tokenizer) are done. See docs/ROADMAP.md for the full plan and
-docs/DECISIONS.md for open questions (grammar-rule inventory scope; tokenizer
-vocab strategy — ADR-012, M1 evidence in, final call at M5).
+Milestone: **M3 — translation model v1**. M0 (format library), M1 (from-scratch
+byte-level BPE tokenizer), and M2 (22.1M-pair filtered corpus, 4 sources) are
+done. See docs/ROADMAP.md for the full plan and docs/DECISIONS.md for open
+questions (grammar-rule inventory scope; tokenizer vocab strategy — ADR-012,
+M1 evidence in, final call at M5). Corpus skews long/web-domain (JParaCrawl is
+~86%); tokenizer was bootstrapped on raw Tatoeba and should be retrained on the
+M2 corpus before M3 training settles.
 
 ## Key context from design discussions
 

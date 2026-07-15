@@ -25,7 +25,13 @@ byte-level, special-token handling.
 **Done when:** encode/decode round-trips arbitrary UTF-8; trainer reproduces
 expected merges on a toy corpus; vocab-size comparison table produced.
 
-## M2 — Data pipeline  ← CURRENT
+## M2 — Data pipeline  ✅ DONE
+Report: docs/reports/m2-corpus.md. Corpus: 22.1M filtered Ja-En pairs from
+Tatoeba+KFTT+JESC+JParaCrawl (data/processed/{train,valid,test}.jsonl).
+Filtering choices: ADR-013 (thresholds) + ADR-014 (offline neural filters).
+NOTE: JParaCrawl is ~86% of the corpus, so the length distribution skews long
+(ja p95 132 chars, en p95 296) and web-domain — relevant to M3 max-length and
+the eventual tokenizer retrain (ADR-012).
 Download + normalize KFTT, JESC, Tatoeba, JParaCrawl (streamed). Cleaning:
 language ID, length-ratio filters, dedup, similarity scoring (LaBSE) for
 JParaCrawl. Paragraph/sentence segmentation policy. Corpus stats notebook.
@@ -33,7 +39,7 @@ JParaCrawl. Paragraph/sentence segmentation policy. Corpus stats notebook.
 **Done when:** filtered parallel corpus on disk with stats report; filtering
 choices logged as ADRs.
 
-## M3 — Translation model v1 (the "start small" goal)
+## M3 — Translation model v1 (the "start small" goal)  ← CURRENT
 Encoder-decoder transformer from scratch in raw PyTorch: attention, RoPE and
 sinusoidal variants, pre-LN, label smoothing, warmup+inverse-sqrt schedule,
 mixed precision, torch.compile, checkpointing. Greedy + beam decoding.

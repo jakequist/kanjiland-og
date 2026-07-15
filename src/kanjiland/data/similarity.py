@@ -37,6 +37,11 @@ class LaBSEConfig:
     threshold: float = 0.6
     batch_size: int = 256
     device: str | None = None  # None -> auto (cuda if available else cpu)
+    # Half-precision encoding on the GPU. LaBSE's cosine scores are robust to
+    # fp16's reduced precision (we only threshold at 0.6), and fp16 roughly
+    # doubles encode throughput on the 4090 — the single biggest speedup for the
+    # dominant filtering phase. Ignored on CPU.
+    fp16: bool = True
 
 
 class LaBSEScorer:
@@ -56,6 +61,8 @@ class LaBSEScorer:
 
                 device = "cuda" if torch.cuda.is_available() else "cpu"
             self._model = SentenceTransformer(self.cfg.model_name, device=device)
+            if self.cfg.fp16 and device == "cuda":
+                self._model = self._model.half()
         return self._model
 
     def score(self, pairs: list[Pair]) -> list[float]:
