@@ -50,6 +50,11 @@ scripts/         entry points (train.py, translate.py, annotate.py)
 - Python ≥3.11, `uv` for env management, `ruff` for lint+format,
   `pytest` for tests, type hints everywhere, dataclasses for records.
 - Commits: conventional-commit style, small and topical.
+- **One branch per milestone.** Each milestone Mn is developed on its own git
+  branch named `mn` (`m4`, `m5`, …), branched from the previous milestone's
+  branch (or `main`). Start a new branch when beginning a new milestone; never
+  develop milestone work directly on `main`. Merge to `main` when the milestone
+  is done (human-reviewed).
 - Every experiment gets a config file in `configs/` — no hyperparameters
   hardcoded in scripts.
 - Docs are living: when we make a design decision, append an ADR to
