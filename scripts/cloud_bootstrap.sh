@@ -22,7 +22,10 @@ echo "== pull data =="; curl -fsSL "$DATA_URL" | tar xz     # -> data/processed/
 echo "== uv + deps =="
 command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
 export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
-uv sync --extra data --extra eval
+# Only core + eval: the `data` extra (fasttext-wheel/sentence-transformers) is
+# for the offline corpus pipeline, already done, and fasttext needs a C++
+# compiler that GPU images usually lack.
+uv sync --extra eval
 
 echo "== GPU check =="
 uv run python -c "import torch; print('cuda', torch.cuda.is_available(), 'x', torch.cuda.device_count())"
