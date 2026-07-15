@@ -74,6 +74,8 @@ def main() -> None:
     ap.add_argument("--config", required=True, type=Path)
     ap.add_argument("--overfit", type=int, default=0, help="train on one batch for N steps")
     ap.add_argument("--steps", type=int, default=None, help="override train.max_steps")
+    ap.add_argument("--resume", type=Path, default=None, help="checkpoint to resume from")
+    ap.add_argument("--no-compile", action="store_true", help="disable torch.compile (fast pilots)")
     ap.add_argument("--no-wandb", action="store_true")
     args = ap.parse_args()
 
@@ -93,8 +95,10 @@ def main() -> None:
     print(f"model: {model.num_parameters() / 1e6:.1f}M params | device {device}")
 
     raw_model = model  # keep uncompiled handle for checkpointing
-    if tcfg.get("compile") and device == "cuda":
-        model = torch.compile(model)
+    if tcfg.get("compile") and device == "cuda" and not args.no_compile:
+        # dynamic=True: token-budget batching produces many different (batch,
+        # seq) shapes; without it torch.compile recompiles for each and thrashes.
+        model = torch.compile(model, dynamic=True)
 
     opt = torch.optim.AdamW(
         model.parameters(),
@@ -140,6 +144,17 @@ def main() -> None:
     peak_lr = tcfg["lr"]
     ckpt_dir = Path("checkpoints") / cfg.get("run_name", "m3")
 
+    # Resume: restore weights/optimizer and continue from the saved step. The
+    # data stream isn't fast-forwarded — on a large shuffled corpus a different
+    # continuation ordering is harmless.
+    start_step = 0
+    if args.resume:
+        ck = torch.load(args.resume, map_location=device, weights_only=False)
+        raw_model.load_state_dict(ck["model"])
+        opt.load_state_dict(ck["optimizer"])
+        start_step = ck["step"]
+        print(f"resumed from {args.resume} at step {start_step}", flush=True)
+
     batches = _infinite(train_loader, train_sampler)
     fixed_batch = next(batches) if args.overfit else None  # overfit: reuse one batch
 
@@ -147,7 +162,7 @@ def main() -> None:
     t0 = time.time()
     tokens_seen = 0
     step_loss = step_tok = 0.0
-    for step in range(1, max_steps + 1):
+    for step in range(start_step + 1, max_steps + 1):
         lr = lr_at_step(step, peak_lr, warmup)
         for g in opt.param_groups:
             g["lr"] = lr
