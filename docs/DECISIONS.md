@@ -168,3 +168,26 @@ consistent with the project's constraints:
 Both live under `src/kanjiland/data`, are lazily imported, and run on the GPU
 offline. If the modeling path ever imports `transformers`, that is a bug ADR-010
 forbids — worth extending the runtime import-guard test to cover it.
+
+## ADR-015 — Ablation methodology (M5) (ACCEPTED)
+Ablations (ROADMAP M5) measure *relative* effects, so they run at REDUCED SCALE:
+20k steps (vs M3's 100k) on the full 22.1M-pair corpus, warmup scaled to 2k,
+everything else matching the M3 base. This is ~5x cheaper per run, which buys
+the ≥2 seeds/variant needed to claim a difference is real (rule #6, ADR-008) —
+`scripts/ablate.py` sweeps one axis × seeds, trains each via train.py, evals via
+the M4 harness into docs/reports/m5-results.json, and the store auto-aggregates
+seeds to mean±std. Absolute numbers will trail the M3 headline; only the
+*ordering/gap* between variants is the claim.
+
+Axes (each ≥2 seeds), eval chrF/BLEU/COMET on kftt-test:
+  - RoPE vs sinusoidal — plus a length-extrapolation eval (train @128, decode
+    longer) since that's RoPE's claimed advantage. No tokenizer dependency.
+  - Tied (three_way) vs untied (none) embeddings — parameter/quality trade.
+  - Vocab size 8k/16k/32k — DEPENDS on retraining the 8k/32k tokenizers on the
+    M2 corpus (currently raw-Tatoeba bootstrap, ADR-012); the pure-Python BPE
+    trainer is slow (~30 min each) so parallelizing it (or accepting the cost)
+    is a prerequisite.
+
+Compute note: the full sweep is ~14 training runs. At ~45–70 min/run (20k steps,
+bf16+compile) that is roughly a day of continuous single-GPU time — a real
+budget the human should scope before the whole campaign runs.

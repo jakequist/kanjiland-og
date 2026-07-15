@@ -145,7 +145,9 @@ def main() -> None:
     clip = tcfg.get("clip_grad", 1.0)
     warmup = tcfg["warmup_steps"]
     peak_lr = tcfg["lr"]
-    ckpt_dir = Path("checkpoints") / cfg.get("run_name", "m3")
+    # Per-seed subdir so ablation variants that share a run_name but differ in
+    # seed don't overwrite each other's checkpoints.
+    ckpt_dir = Path("checkpoints") / cfg.get("run_name", "m3") / f"seed{seed}"
 
     # Resume: restore weights/optimizer and continue from the saved step. The
     # data stream isn't fast-forwarded — on a large shuffled corpus a different
