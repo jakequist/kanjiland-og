@@ -1,0 +1,47 @@
+# Mac/CPU smoke config — self-contained (uses the committed sample dataset +
+# committed 16k tokenizer), so a fresh clone can pretokenize + overfit with no
+# server data. Small model, fp32, no compile → runs fine on CPU or Apple MPS.
+#
+#   uv run python scripts/pretokenize.py --config configs/m3_smoke_mac.yaml
+#   uv run python scripts/train.py --config configs/m3_smoke_mac.yaml --overfit 200 --no-wandb
+run_name: m3-smoke-mac
+seed: 1
+
+data:
+  train: data/samples/dev.jsonl     # committed 300-pair sample
+  valid: data/samples/dev.jsonl
+  bin_dir: data/processed/tok_mac
+  max_src_len: 128
+  max_tgt_len: 128
+
+tokenizer:
+  path: data/processed/tokenizer-16k.json   # committed
+  vocab_size: 16000
+
+model:
+  d_model: 256
+  n_heads: 4
+  d_ff: 1024
+  encoder_layers: 4
+  decoder_layers: 4
+  dropout: 0.1
+  pos_encoding: rope
+  tie_embeddings: three_way
+  norm: pre
+
+train:
+  tokens_per_batch: 2000
+  grad_accum_steps: 1
+  max_steps: 200
+  lr: 3.0e-4
+  warmup_steps: 50
+  label_smoothing: 0.1
+  precision: fp32          # no bf16 autocast off-CUDA (see train/device.py)
+  compile: false           # torch.compile is CUDA-only here anyway
+  checkpoint_every: 1000000
+  eval_every: 1000000
+  log_every: 25
+
+wandb:
+  project: kanjiland
+  tags: [m3, smoke, mac]

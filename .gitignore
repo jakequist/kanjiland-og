@@ -80,8 +80,7 @@ wandb/
 /data/processed/*.jsonl
 /data/processed/_m2_tmp/
 /data/processed/_tok_sample/
-/data/processed/tok/
-/data/processed/tok_smoke/
+/data/processed/tok*/
 /data/models/
 
 # ===== Model checkpoints (large, regenerable) =====
