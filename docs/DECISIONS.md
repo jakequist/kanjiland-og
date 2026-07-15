@@ -170,14 +170,14 @@ offline. If the modeling path ever imports `transformers`, that is a bug ADR-010
 forbids — worth extending the runtime import-guard test to cover it.
 
 ## ADR-015 — Ablation methodology (M5) (ACCEPTED)
-Ablations (ROADMAP M5) measure *relative* effects, so they run at REDUCED SCALE:
-20k steps (vs M3's 100k) on the full 22.1M-pair corpus, warmup scaled to 2k,
-everything else matching the M3 base. This is ~5x cheaper per run, which buys
-the ≥2 seeds/variant needed to claim a difference is real (rule #6, ADR-008) —
-`scripts/ablate.py` sweeps one axis × seeds, trains each via train.py, evals via
-the M4 harness into docs/reports/m5-results.json, and the store auto-aggregates
-seeds to mean±std. Absolute numbers will trail the M3 headline; only the
-*ordering/gap* between variants is the claim.
+Ablations (ROADMAP M5) run at FULL SCALE — 100k steps, matching the M3 base.
+The original plan was 20k-step reduced runs (relative effects only), but cheap
+cloud parallelism (one RTX 4090 per run at ~$0.30/hr, ~$17 for the whole sweep,
+docs/CLOUD.md) makes full-quality ablations affordable, so we keep credibility
+and comparability to the M3 headline. ≥2 seeds/variant to claim a difference is
+real (rule #6, ADR-008). `scripts/ablate.py` sweeps one axis × seeds, trains
+each via train.py, evals via the M4 harness into docs/reports/m5-results.json,
+and the store auto-aggregates seeds to mean±std.
 
 Axes (each ≥2 seeds), eval chrF/BLEU/COMET on kftt-test:
   - RoPE vs sinusoidal — plus a length-extrapolation eval (train @128, decode
@@ -188,6 +188,8 @@ Axes (each ≥2 seeds), eval chrF/BLEU/COMET on kftt-test:
     trainer is slow (~30 min each) so parallelizing it (or accepting the cost)
     is a prerequisite.
 
-Compute note: the full sweep is ~14 training runs. At ~45–70 min/run (20k steps,
-bf16+compile) that is roughly a day of continuous single-GPU time — a real
-budget the human should scope before the whole campaign runs.
+Compute: the full sweep is ~14 training runs at ~4 h/run (100k steps). On the
+local single 4090 that is ~2 days; on rented GPUs (one 4090 per run via
+--devices/--shard, docs/CLOUD.md) it is ~$17 and ~4 h wall-clock. Parallelism
+ceiling is ~14 (one run per GPU) — beyond that nothing is left to parallelize,
+so more than ~14 GPUs buys no speedup.

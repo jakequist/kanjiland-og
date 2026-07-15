@@ -1,10 +1,10 @@
 # M5 ablation base config. `scripts/ablate.py` copies this, overrides one axis
 # (e.g. model.pos_encoding), and stamps a per-seed run.
 #
-# REDUCED SCALE (ADR-015): 20k steps (vs M3's 100k) on the full corpus. Ablations
-# measure *relative* effects, so we trade absolute quality for ~5x cheaper runs
-# and can afford ≥2 seeds per variant. Everything else matches the M3 base so the
-# ablated axis is the only thing that changes.
+# FULL SCALE (ADR-015): 100k steps, matching the M3 headline — cheap cloud
+# parallelism (one 4090 per run, ~$0.30/hr) makes full-quality ablations
+# affordable (~$17 for the whole sweep), so we don't trade away credibility.
+# Everything except the ablated axis matches the M3 base.
 run_name: m5-ablation      # overridden per-variant by ablate.py
 seed: 1                    # overridden per-seed
 
@@ -33,9 +33,9 @@ model:
 train:
   tokens_per_batch: 12000
   grad_accum_steps: 2
-  max_steps: 20000         # reduced for ablations
+  max_steps: 100000        # full scale (matches M3), cheap via cloud parallelism
   lr: 5.0e-4
-  warmup_steps: 2000       # scaled down from 4000 for the shorter run
+  warmup_steps: 4000
   label_smoothing: 0.1
   precision: bf16
   compile: true
