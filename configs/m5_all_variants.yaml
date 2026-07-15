@@ -1,0 +1,22 @@
+# All unique M5 ablation configs in one preset, so a single `ablate.py --preset`
+# run packs every job into one queue across all GPUs (max utilization).
+#
+# The three axes share a baseline (16k / rope / tied), so there are only 5 unique
+# configs — running them separately would re-train that baseline 3x. The writeup
+# (ablations-1.md) reads the axes back out of these:
+#   pos   = rope-16k-tied  vs  sinusoidal-16k-tied
+#   tie   = rope-16k-tied  vs  rope-16k-untied
+#   vocab = rope-8k-tied   vs  rope-16k-tied  vs  rope-32k-tied
+"rope-16k-tied": {}   # baseline / shared control (base config unchanged)
+"sinusoidal-16k-tied":
+  model.pos_encoding: sinusoidal
+"rope-16k-untied":
+  model.tie_embeddings: none
+"rope-8k-tied":
+  tokenizer.path: data/processed/tokenizer-8k.json
+  tokenizer.vocab_size: 8000
+  data.bin_dir: data/processed/tok8k
+"rope-32k-tied":
+  tokenizer.path: data/processed/tokenizer-32k.json
+  tokenizer.vocab_size: 32000
+  data.bin_dir: data/processed/tok32k
