@@ -67,19 +67,29 @@ class Job:
     log: Path
 
 
+def _variants(args) -> list[tuple[str, dict]]:
+    """(label, {dotted_key: value}) per variant. --vary is a single-key axis;
+    --preset is a yaml of named variants each with a dict of overrides (for
+    multi-key axes like vocab, which changes tokenizer + bin_dir together)."""
+    if args.preset:
+        preset = yaml.safe_load(Path(args.preset).read_text())
+        return [(str(label), dict(ov)) for label, ov in preset.items()]
+    key, raw = args.vary.split("=")
+    return [(v, {key: _coerce(v)}) for v in raw.split(",")]
+
+
 def build_jobs(args) -> list[Job]:
     base = yaml.safe_load(Path(args.base).read_text())
-    key, raw_values = args.vary.split("=")
-    values = raw_values.split(",")
     seeds = [int(s) for s in args.seeds.split(",")]
     GEN_DIR.mkdir(parents=True, exist_ok=True)
 
     jobs: list[Job] = []
-    for value in values:
+    for label, overrides in _variants(args):
         for seed in seeds:
             cfg = copy.deepcopy(base)
-            _set_dotted(cfg, key, _coerce(value))
-            run_name = f"m5-{args.name}-{value}"  # variant only; seed -> ckpt subdir
+            for k, v in overrides.items():
+                _set_dotted(cfg, k, v)
+            run_name = f"m5-{args.name}-{label}"  # variant only; seed -> ckpt subdir
             cfg["run_name"] = run_name
             cfg["seed"] = seed
             gen = GEN_DIR / f"{run_name}-s{seed}.yaml"
@@ -131,7 +141,8 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--base", required=True, type=Path)
     ap.add_argument("--name", required=True, help="ablation name, e.g. 'pos'")
-    ap.add_argument("--vary", required=True, help="dotted.key=v1,v2,... (the axis)")
+    ap.add_argument("--vary", default=None, help="dotted.key=v1,v2,... (single-key axis)")
+    ap.add_argument("--preset", default=None, help="yaml of named variants -> override dicts")
     ap.add_argument("--seeds", default="1,2")
     ap.add_argument("--test-sets", default="kftt-test")
     ap.add_argument("--beam", type=int, default=4)
