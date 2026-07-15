@@ -98,11 +98,13 @@ def pretokenize_split(
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--config", required=True, type=Path)
-    ap.add_argument("--bin-dir", type=Path, default=Path("data/processed/tok"))
+    ap.add_argument("--bin-dir", type=Path, default=None, help="override config data.bin_dir")
     ap.add_argument("--workers", type=int, default=max(1, mp.cpu_count() - 2))
     args = ap.parse_args()
 
     cfg = yaml.safe_load(args.config.read_text())
+    bin_dir = args.bin_dir or Path(cfg.get("data", {}).get("bin_dir", "data/processed/tok"))
+    args.bin_dir = bin_dir
     tok_path = cfg["tokenizer"]["path"]
     max_src = cfg["data"]["max_src_len"]
     max_tgt = cfg["data"]["max_tgt_len"]
