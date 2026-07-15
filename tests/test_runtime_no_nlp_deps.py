@@ -68,6 +68,30 @@ def test_runtime_package_imports_no_classical_nlp():
 
     assert not violations, (
         "Runtime NLP dependency imported in src/kanjiland (CLAUDE.md rule #1, "
-        "ADR-007). Move offline-only tooling under tools/:\n  "
+        "ADR-007). Move offline-only tooling under tools/:\n  " + "\n  ".join(violations)
+    )
+
+
+# The from-scratch modeling path may not import heavy ML frameworks that would
+# amount to "using someone else's transformer" (CLAUDE.md rule #2, ADR-010).
+# These are fine under data/ for offline corpus tooling (ADR-014) — hence this
+# check is scoped to the model/train/eval subpackages only.
+_MODEL_PATH_FORBIDDEN = frozenset({"transformers", "sentence_transformers", "fasttext", "datasets"})
+_MODEL_SUBPACKAGES = ("model", "train", "eval")
+
+
+def test_model_path_imports_no_heavy_ml_frameworks():
+    violations: list[str] = []
+    for sub in _MODEL_SUBPACKAGES:
+        for path in sorted((SRC_PKG / sub).rglob("*.py")):
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+            for top_level, lineno in _imported_top_levels(tree):
+                if top_level in _MODEL_PATH_FORBIDDEN:
+                    rel = path.relative_to(SRC_PKG.parent.parent)
+                    violations.append(f"{rel}:{lineno} imports '{top_level}'")
+
+    assert not violations, (
+        "Heavy ML framework imported in the from-scratch modeling path "
+        "(CLAUDE.md rule #2, ADR-010). These belong only under data/ tooling:\n  "
         + "\n  ".join(violations)
     )

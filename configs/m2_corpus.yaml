@@ -1,0 +1,51 @@
+# M2 — parallel corpus build. Streams four sources through the cleaning funnel
+# and writes train/valid/test.jsonl. Thresholds rationale: ADR-013.
+run_name: m2-corpus
+seed: 1
+
+# Processed in order; dedup is global across sources (earlier source wins a tie).
+# `labse: true` routes a source through the GPU semantic filter — only the noisy
+# web-mined JParaCrawl needs it; the curated corpora don't.
+sources:
+  - name: tatoeba
+    labse: false
+  - name: kftt
+    labse: false
+  - name: jesc
+    labse: false
+  - name: jparacrawl
+    labse: true
+    min_bicleaner: 0.5      # cheap pre-filter before LaBSE
+
+filters:
+  ja_min_chars: 1
+  ja_max_chars: 250
+  en_min_chars: 1
+  en_max_chars: 500
+  len_ratio_min: 0.5
+  len_ratio_max: 6.0        # Ja is compact; formal Ja->En runs to ~5-6x chars (ADR-013)
+  require_japanese: true
+  require_english: true
+  min_english_latin_ratio: 0.5
+
+langid:
+  enabled: true
+  min_confidence: 0.5
+  min_chars: 10             # skip langid on very short (kanji/zh-confusable) text
+
+labse:
+  enabled: true
+  threshold: 0.6
+  batch_size: 256
+
+split:
+  valid_size: 3000
+  test_size: 3000
+
+output:
+  dir: data/processed
+  report: docs/reports/m2-corpus.md
+
+wandb:
+  project: kanjiland
+  tags: [m2, corpus]

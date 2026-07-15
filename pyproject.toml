@@ -14,7 +14,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov", "hypothesis", "ruff"]
 eval = ["sacrebleu", "unbabel-comet"]
-data = ["datasets", "requests"]
+data = ["datasets", "requests", "fasttext-wheel", "sentence-transformers"]
 
 # PyTorch CUDA build pin. The default PyPI torch wheel is built against CUDA 13
 # (cu130), which needs a driver >= 580; this box runs driver 545 (CUDA 12.3
