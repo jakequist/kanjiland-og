@@ -39,7 +39,11 @@ JParaCrawl. Paragraph/sentence segmentation policy. Corpus stats notebook.
 **Done when:** filtered parallel corpus on disk with stats report; filtering
 choices logged as ADRs.
 
-## M3 — Translation model v1 (the "start small" goal)  ← CURRENT
+## M3 — Translation model v1 (the "start small" goal)  ← CURRENT (training)
+Built + tested (52.3M transformer, docs/reports/m3-model.md, 93 tests); full
+100k-step run launched on the 22.1M-pair corpus. "Done when" pends completion:
+evaluate with scripts/evaluate.py (chrF vs baseline) on the final checkpoint.
+
 Encoder-decoder transformer from scratch in raw PyTorch: attention, RoPE and
 sinusoidal variants, pre-LN, label smoothing, warmup+inverse-sqrt schedule,
 mixed precision, torch.compile, checkpointing. Greedy + beam decoding.

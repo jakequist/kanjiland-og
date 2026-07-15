@@ -102,12 +102,13 @@ vocab size (and joint-vs-separate) against downstream chrF/COMET before this
 ADR is closed. Not resolving now — sequence length is only a proxy; the M5
 translation-quality numbers decide.
 
-NOTE (post-M2): the M1 tokenizers were trained on raw (un-normalized) Tatoeba
-(117k pairs) as a bootstrap. The M2 corpus is 22.1M NFKC-normalized pairs that
-skew long and web-domain (JParaCrawl ~86%). Before M3 training settles, retrain
-the tokenizer on the M2 corpus so vocab/merges reflect the real training
-distribution; the current tokenizers are fine for wiring up M3 but not for the
-final numbers.
+NOTE (M3): the 16k tokenizer was RETRAINED on a 3M-pair random sample of the M2
+corpus (data/processed/tokenizer-16k.json, docs/reports/m3-tokenizer.md) so
+vocab/merges reflect the real training distribution — this is what M3 trains on.
+The 8k/32k tokenizers are still the M1 raw-Tatoeba bootstrap; retrain them on M2
+as part of M5-ablation prep. (Aside: BPE training on 6M sentences took ~30 min
+in the pure-Python trainer — parallelizing it is the same opportunity as the M2
+langid stage, worth doing before the M5 vocab sweep.)
 
 ## ADR-013 — M2 corpus filtering thresholds (ACCEPTED, tunable)
 The parallel corpus (KFTT, JESC, Tatoeba, JParaCrawl) is cleaned by a funnel
