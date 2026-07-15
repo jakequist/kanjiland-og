@@ -73,13 +73,13 @@ uv run python scripts/train.py --config configs/<name>.yaml
 
 ## Current status
 
-Milestone: **M3 — translation model v1**. M0 (format library), M1 (from-scratch
-byte-level BPE tokenizer), and M2 (22.1M-pair filtered corpus, 4 sources) are
-done. See docs/ROADMAP.md for the full plan and docs/DECISIONS.md for open
-questions (grammar-rule inventory scope; tokenizer vocab strategy — ADR-012,
-M1 evidence in, final call at M5). Corpus skews long/web-domain (JParaCrawl is
-~86%); tokenizer was bootstrapped on raw Tatoeba and should be retrained on the
-M2 corpus before M3 training settles.
+Milestone: **M4 — evaluation harness**. M0 (format), M1 (BPE tokenizer), M2
+(22.1M-pair corpus), and M3 (52.3M from-scratch transformer, KFTT-test chrF 47.2
+vs 11.9 baseline) are done. See docs/ROADMAP.md for the full plan and
+docs/DECISIONS.md for open questions (grammar-rule inventory scope; tokenizer
+vocab strategy — ADR-012, final call at M5). Corpus skews long/web-domain
+(JParaCrawl ~86%), so KFTT formal-domain eval trails the mixed-test number by
+~8 chrF — a KFTT-weighted training mix is a candidate M3.1/M5 run.
 
 ## Key context from design discussions
 

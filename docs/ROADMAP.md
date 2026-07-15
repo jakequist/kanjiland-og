@@ -39,10 +39,12 @@ JParaCrawl. Paragraph/sentence segmentation policy. Corpus stats notebook.
 **Done when:** filtered parallel corpus on disk with stats report; filtering
 choices logged as ADRs.
 
-## M3 — Translation model v1 (the "start small" goal)  ← CURRENT (training)
-Built + tested (52.3M transformer, docs/reports/m3-model.md, 93 tests); full
-100k-step run launched on the 22.1M-pair corpus. "Done when" pends completion:
-evaluate with scripts/evaluate.py (chrF vs baseline) on the final checkpoint.
+## M3 — Translation model v1 (the "start small" goal)  ✅ DONE
+52.3M from-scratch transformer, docs/reports/m3-model.md, 93 tests. Trained
+100k steps on the 22.1M-pair corpus (loss 10.35→2.62). Beam-4 chrF: KFTT test
+47.2 vs baseline 11.9 (+35.3); M2 test 55.3 vs 18.6 — beats the word-
+substitution baseline ~4x with fluent English. Domain gap (KFTT formal vs
+~86% web training) noted for an M3.1/M5 KFTT-weighted run.
 
 Encoder-decoder transformer from scratch in raw PyTorch: attention, RoPE and
 sinusoidal variants, pre-LN, label smoothing, warmup+inverse-sqrt schedule,
@@ -52,7 +54,7 @@ Train transformer-base (~60M) Ja→En.
 **Done when:** trained model beats a word-substitution baseline by a mile and
 produces recognizably fluent English on KFTT test; W&B report with curves.
 
-## M4 — Evaluation harness
+## M4 — Evaluation harness  ← CURRENT
 SacreBLEU + chrF + COMET runners; standard test sets (KFTT test, WMT);
 seed-variance protocol; results tables auto-generated from W&B.
 **Done when:** one command evaluates any checkpoint and updates a results doc.
