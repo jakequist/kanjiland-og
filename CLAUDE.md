@@ -78,7 +78,13 @@ uv run python scripts/train.py --config configs/<name>.yaml
 
 ## Current status
 
-Milestone: **M9 — on-device inference + demo — DONE** (branch `m9`, off `m8`).
+Milestone: **M10 — polish for publication — DONE. Project M0–M10 complete.**
+(branch `m10`, off `m9`.) README.md rewritten as the research log; docs/
+MODEL_CARDS.md added; ROADMAP marked complete. The from-scratch on-device Japanese
+reading engine is done end-to-end (rough annotation quality — the 6.8k-data
+baseline; improve via more silver data + constrained decoding). All milestone
+branches `m5`→`m10` pushed, ready for human review + merge to main.
+Previously: **M9 — on-device inference + demo — DONE** (branch `m9`, off `m8`).
 docs/reports/m9-ondevice-demo.md: interactive reading-engine demo (tools/demo/,
 published Artifact — mincho + real ruby furigana, hover glosses, grammar
 highlight); runtime entry scripts/annotate.py (Ja → full annotation, ZERO NLP
