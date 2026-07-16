@@ -78,15 +78,24 @@ uv run python scripts/train.py --config configs/<name>.yaml
 
 ## Current status
 
-Milestone: **M5 — ablations round 1**. M0 (format), M1 (BPE tokenizer), M2
-(22.1M-pair corpus), M3 (52.3M from-scratch transformer, KFTT-test chrF 47.2 vs
-11.9 baseline), and M4 (chrF/BLEU/COMET eval harness + seed-variance protocol,
-docs/reports/m4-results.md) are done. Work happens on per-milestone branches
-(`m5`, …). See docs/ROADMAP.md for the full plan and
-docs/DECISIONS.md for open questions (grammar-rule inventory scope; tokenizer
-vocab strategy — ADR-012, final call at M5). Corpus skews long/web-domain
-(JParaCrawl ~86%), so KFTT formal-domain eval trails the mixed-test number by
-~8 chrF — a KFTT-weighted training mix is a candidate M3.1/M5 run.
+Milestone: **M5 — ablations round 1 — DONE** (on branch `m5`, ready for
+human review + merge to main). M0 (format), M1 (BPE tokenizer), M2 (22.1M-pair
+corpus), M3 (52.3M from-scratch transformer, KFTT-test chrF 47.2 vs 11.9
+baseline), M4 (chrF/BLEU/COMET eval harness + seed-variance protocol,
+docs/reports/m4-results.md), and M5 (three-axis ablation sweep,
+docs/reports/ablations-1.md) are done. Next: **M6** (start a new `m6` branch off
+`m5`). Work happens on per-milestone branches.
+
+M5 outcome (docs/reports/ablations-1.md, ADR-016; 15 runs = 5 configs × 3 seeds,
+100k steps, run on 2×8-GPU vast.ai boxes via scripts/vast_up.sh, ~$34):
+config into M6 is **RoPE · 16k · three-way-tied** (the M3 base, now empirically
+justified). RoPE > sinusoidal (clean, non-overlapping seeds); tying is free;
+vocab 16k is the footprint/quality sweet spot (resolves ADR-012). Open follow-up:
+the RoPE length-extrapolation eval (needs a >128-token test set; checkpoints
+preserved locally). Corpus skews long/web-domain (JParaCrawl ~86%), so KFTT
+formal-domain eval trails the mixed-test number by ~8 chrF — a KFTT-weighted
+training mix remains a candidate run. Cloud sweeps: docs/CLOUD.md (one-command
+scripts/vast_up.sh + gotchas learned on the first live run).
 
 ## Key context from design discussions
 

@@ -87,9 +87,21 @@ inventory itself in progress)
 ⟨G⟩ rule_ids come from docs/GRAMMAR_RULES.md; version pinned in every
 file header. Inventory must be frozen at some version before M7 data gen.
 
-## ADR-012 — Tokenizer vocab strategy (OPEN — M1 evidence in; final call at M5)
+## ADR-012 — Tokenizer vocab strategy (ACCEPTED at M5 — 16k joint tied)
 Joint Ja+En vocab vs separate; size 8k/16k/32k. Resolve empirically via the
 M1 comparison + M5 ablation.
+
+RESOLUTION (M5, docs/reports/ablations-1.md): **joint vocab, size 16k, three-way
+tied.** The M5 vocab sweep (3 seeds, 100k steps, kftt-test chrF) gives 8k 46.24 →
+16k 46.93 → 32k 47.31 — monotonic but with diminishing returns (8k→16k +0.69,
+16k→32k +0.38) and 32k the noisiest config (σ=0.30; its seed-1 = 46.88 is no
+better than 16k). 16k captures ~65% of the 8k→32k gain at half the 32k vocab
+cost, with the tightest seed variance, and keeps the on-device footprint smaller
+(rule: inference must run on CPU/small GPU). 32k retained as a documented
+"quality-max" fallback if a later milestone shows +0.38 chrF outweighs the 2×
+embedding/softmax cost; 8k dropped. Joint (not separate) confirmed — it lets the
+embeddings tie three-way (Axis 2: tying is free, 46.93 vs 46.99) and keeps one
+artifact. This closes the size + joint-vs-separate questions ADR left open.
 
 M1 evidence (docs/reports/m1-tokenizer.md, joint vocab, script-aware
 pre-tokenizer, Tatoeba): tokens/sentence falls monotonically with vocab size
@@ -193,3 +205,21 @@ local single 4090 that is ~2 days; on rented GPUs (one 4090 per run via
 --devices/--shard, docs/CLOUD.md) it is ~$17 and ~4 h wall-clock. Parallelism
 ceiling is ~14 (one run per GPU) — beyond that nothing is left to parallelize,
 so more than ~14 GPUs buys no speedup.
+
+## ADR-016 — M5 ablation outcomes (ACCEPTED)
+Results of the ADR-015 sweep (15 runs = 5 configs × 3 seeds, 100k steps,
+kftt-test; docs/reports/ablations-1.md). Config going into M6 is **RoPE · 16k ·
+three-way-tied** — the M3 base, now empirically justified:
+  - **RoPE > sinusoidal** (Axis 1): +0.47 chrF with non-overlapping seed
+    distributions (RoPE's worst seed > sinusoidal's best). Keep RoPE. Its
+    length-extrapolation claim is NOT yet tested in-domain (needs a >128-token
+    eval set; checkpoints preserved to run it locally — tracked in the report).
+  - **Tied embeddings are free** (Axis 2): tied 46.93 vs untied 46.99 chrF,
+    within seed noise. Keep three-way tied (fewer params, smaller on-device
+    footprint, no quality cost).
+  - **Vocab 16k** (Axis 3, resolves ADR-012): diminishing returns 8k→16k→32k;
+    16k is the footprint/quality sweet spot, 32k the quality-max fallback.
+Actuals: ~3.5 h wall-clock, ~$34 on two 8×4090 boxes (ADR-015 estimate held).
+Process note: 4 eval-stage failures (not training) from a venv extra-prune + a
+results-file write race were recovered by re-running eval from saved checkpoints
+per-file, no retraining; fixes in cloud_bootstrap.sh + docs/CLOUD.md gotcha #7.
