@@ -78,13 +78,26 @@ uv run python scripts/train.py --config configs/<name>.yaml
 
 ## Current status
 
-Milestone: **M5 — ablations round 1 — DONE** (on branch `m5`, ready for
-human review + merge to main). M0 (format), M1 (BPE tokenizer), M2 (22.1M-pair
+Milestone: **M6 — distillation dry run — DONE** (on branch `m6`, forked from
+`m5`; both ready for human review + merge to main). Previously: **M5 — ablations
+round 1 — DONE** (branch `m5`). M0 (format), M1 (BPE tokenizer), M2 (22.1M-pair
 corpus), M3 (52.3M from-scratch transformer, KFTT-test chrF 47.2 vs 11.9
 baseline), M4 (chrF/BLEU/COMET eval harness + seed-variance protocol,
 docs/reports/m4-results.md), and M5 (three-axis ablation sweep,
-docs/reports/ablations-1.md) are done. Next: **M6** (start a new `m6` branch off
-`m5`). Work happens on per-milestone branches.
+docs/reports/ablations-1.md), and M6 (KD distillation dry run,
+docs/reports/m6-distillation.md) are done. Next: **M7** (start a new `m7` branch
+off `m6`) — annotation supervision + grammar inventory. Work happens on
+per-milestone branches.
+
+M6 outcome (docs/reports/m6-distillation.md, ADR-017): teacher = gpt-5.6-luna
+(bake-off winner, Batch mode ~$30 for 185k KFTT sentences). Sequence-level KD,
+matched arms (same JA, teacher-En vs human-En), 2 seeds: in-domain kftt-test the
+KD student loses on surface (BLEU −5.06) but is **COMET-tied** — a reference-style
+artifact; on mixed m2-test KD **wins all three** (COMET +0.0215). KD buys
+generalization + semantic parity, not an in-domain surface win. Distillation is
+viable → proceed to M7 with luna. Teacher stack (tools/teacher/: Batch client,
+chunking, hygiene, matched-arm harness) is proven. Data (teacher_en.jsonl, pairs)
+on local disk; S3 backup pending an aws re-auth.
 
 M5 outcome (docs/reports/ablations-1.md, ADR-016; 15 runs = 5 configs × 3 seeds,
 100k steps, run on 2×8-GPU vast.ai boxes via scripts/vast_up.sh, ~$34):

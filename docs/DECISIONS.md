@@ -223,3 +223,25 @@ Actuals: ~3.5 h wall-clock, ~$34 on two 8×4090 boxes (ADR-015 estimate held).
 Process note: 4 eval-stage failures (not training) from a venv extra-prune + a
 results-file write race were recovered by re-running eval from saved checkpoints
 per-file, no retraining; fixes in cloud_bootstrap.sh + docs/CLOUD.md gotcha #7.
+
+## ADR-017 — M6 distillation dry-run outcome + teacher choice (ACCEPTED)
+Teacher = **gpt-5.6-luna** (bake-off winner: docs/reports/m6-teacher-bakeoff.md —
+COMET-best of the affordable tier, correct JA proper-name readings; Batch mode at
+½ rate, ~$30 for 185k). Sequence-level KD dry run (docs/reports/m6-distillation.md,
+matched arms, 2 seeds): KD student vs human-reference student on the SAME 182k KFTT
+sentences.
+
+Result is domain-dependent and metric-splitting:
+  - kftt-test (in-domain): baseline > kd on surface (chrF −2.88, BLEU −5.06) but
+    **COMET tied (−0.0004)**. The gap is a reference-STYLE artifact — the human
+    targets share KFTT's house style with the test refs; luna is semantically
+    equal, just phrased differently.
+  - m2-test (mixed): **kd wins all three** (chrF +1.80, COMET +0.0215).
+Reading: KD buys generalization + semantic parity, not an in-domain surface win
+against style-matched human refs. Vindicates COMET-as-headline (ADR-008): BLEU and
+COMET point opposite ways here.
+
+DECISION: distillation is viable — proceed to M7 (annotation distillation) with
+luna. The in-domain surface confound largely won't apply to structured annotation
+labels (no human house-style to match), where teacher consistency matters more.
+The teacher stack (Batch client, chunking, hygiene, matched-arm harness) is proven.
