@@ -75,7 +75,7 @@ def test_roundtrip_all_single_bytes_via_latin1():
 
 def test_roundtrip_wire_format_string():
     tok = _ROUNDTRIP_TOK
-    wire = sep.from_debug("⟨H⟩0.2⟨F⟩grammar-0.1⟨E⟩⟨T⟩0⟨F⟩私⟨F⟩わたし⟨E⟩")
+    wire = sep.from_debug("⟨H⟩0.2⟨F⟩grammar-1.0⟨E⟩⟨T⟩0⟨F⟩私⟨F⟩わたし⟨E⟩")
     assert tok.decode(tok.encode(wire)) == wire
 
 

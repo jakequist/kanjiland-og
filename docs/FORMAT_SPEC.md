@@ -60,7 +60,7 @@ heuristics; see M2). Each paragraph is annotated independently:
 ```
 ⟨H⟩format_version⟨F⟩ruleset_version⟨E⟩
 ```
-Example: `⟨H⟩0.2⟨F⟩grammar-0.1⟨E⟩`
+Example: `⟨H⟩0.2⟨F⟩grammar-1.0⟨E⟩`
 
 ### 4.2 Token ⟨T⟩ — morpheme-level
 
@@ -124,7 +124,7 @@ Example: `⟨G⟩TOPIC_WA⟨F⟩topic=0⟨F⟩marker=1⟨F⟩scope=2:5⟨E⟩`
 Input paragraph: `私は学生です。`
 
 ```
-⟨H⟩0.2⟨F⟩grammar-0.1⟨E⟩
+⟨H⟩0.2⟨F⟩grammar-1.0⟨E⟩
 ⟨P⟩⟨E⟩
 ⟨T⟩0⟨F⟩私⟨F⟩わたし⟨F⟩私⟨F⟩PRON⟨F⟩I⟨E⟩
 ⟨T⟩1⟨F⟩は⟨F⟩⟨F⟩は⟨F⟩PART⟨F⟩(topic marker)⟨E⟩

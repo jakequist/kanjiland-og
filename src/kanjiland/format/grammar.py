@@ -3,8 +3,8 @@
 The inventory lives in the doc file so that spec and code stay in sync
 (the doc is the single source of truth per ADR-011). We extract the fenced
 YAML blocks and keep entries that look like rule definitions (i.e. have a
-'roles' key). Only ``grammar-0.1`` exists today; a future ruleset version
-will need its own source (separate file or headed section).
+'roles' key). ``grammar-1.0`` (M7-frozen Tier-1 inventory) is the live version;
+grammar-0.1 was a never-used draft it supersedes wholesale (no data migration).
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ def load_ruleset(version: str) -> dict[str, dict[str, Any]]:
     """Return {rule_id: {name, level, roles, description}} for the given
     ruleset version. Empty dict if the ruleset is unknown or the file is
     missing (linter treats unknown ruleset as an invariant-1 violation)."""
-    if version != "grammar-0.1":
+    if version != "grammar-1.0":
         return {}
     if not _DOC_PATH.exists():
         return {}

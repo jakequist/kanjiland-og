@@ -82,10 +82,28 @@ first-class learning goal.
 Model + training loop + tokenizer implemented from scratch (raw PyTorch).
 No HF transformers in the modeling path. HF datasets OK for downloads.
 
-## ADR-011 — Grammar rule inventory is closed + versioned (ACCEPTED,
-inventory itself in progress)
+## ADR-011 — Grammar rule inventory is closed + versioned (ACCEPTED;
+grammar-1.0 Tier-1 defined at M7)
 ⟨G⟩ rule_ids come from docs/GRAMMAR_RULES.md; version pinned in every
-file header. Inventory must be frozen at some version before M7 data gen.
+file header. Inventory must be frozen at a version before M7 data gen.
+
+M7 scope decision (GRAMMAR_INVENTORY_PROPOSAL.md, accepted by Jake): target
+audience is intermediate-to-advanced literature/newspaper readers, so the
+inventory tilts N2-N1 and adds two categories beginner sets omit — classical
+文語 and formal newspaper register. Rolled out in two tiers to keep the long
+tail honest (rare rules the teacher can't label consistently and the student
+can't learn):
+  - **grammar-1.0 = Tier 1**: 121 high-frequency rules (N5=20/N4=38/N3=38/N2=20/
+    N1=5) across 9 functional categories (case & info-structure particles;
+    compound particles; tense/aspect/voice; connectives; nominalization & formal
+    nouns; modality/evidentiality; keigo; set patterns; focus particles).
+    Approved granularity splits: ようだ (infer/simile), そうだ (hearsay/appear).
+  - **grammar-1.1 = Tier 2** (~30, planned): classical 文語 (curated ~14),
+    newspaper register (~8), advanced A-I tail. Frozen only AFTER the M7 gate +
+    human audit show Tier-1 labels are clean, so tail-noise doesn't poison the
+    first dataset.
+Freeze: grammar-1.0 is the inventory M7 data-gen labels against. Adding rules
+within a minor version is append-only; renames/removals bump the major version.
 
 ## ADR-012 — Tokenizer vocab strategy (ACCEPTED at M5 — 16k joint tied)
 Joint Ja+En vocab vs separate; size 8k/16k/32k. Resolve empirically via the

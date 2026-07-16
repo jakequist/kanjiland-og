@@ -21,7 +21,7 @@ from kanjiland.format import (
 # --- Fixture: the worked example from FORMAT_SPEC.md §5 --------------------
 
 WIRE_EXAMPLE = from_debug(
-    "⟨H⟩0.2⟨F⟩grammar-0.1⟨E⟩\n"
+    "⟨H⟩0.2⟨F⟩grammar-1.0⟨E⟩\n"
     "⟨P⟩⟨E⟩\n"
     "⟨T⟩0⟨F⟩私⟨F⟩わたし⟨F⟩私⟨F⟩PRON⟨F⟩I⟨E⟩\n"
     "⟨T⟩1⟨F⟩は⟨F⟩⟨F⟩は⟨F⟩PART⟨F⟩(topic marker)⟨E⟩\n"
@@ -30,11 +30,11 @@ WIRE_EXAMPLE = from_debug(
     "⟨T⟩4⟨F⟩。⟨F⟩⟨F⟩。⟨F⟩PUNCT⟨F⟩⟨E⟩\n"
     "⟨S⟩0:5⟨F⟩I am a student.⟨E⟩\n"
     "⟨G⟩TOPIC_WA⟨F⟩topic=0⟨F⟩marker=1⟨F⟩scope=2:5⟨E⟩\n"
-    "⟨G⟩COPULA_POLITE⟨F⟩complement=2⟨F⟩copula=3⟨E⟩\n"
+    "⟨G⟩COPULA⟨F⟩complement=2⟨F⟩copula=3⟨E⟩\n"
 )
 
 DOC_EXAMPLE = Document(
-    header=Header("0.2", "grammar-0.1"),
+    header=Header("0.2", "grammar-1.0"),
     paragraphs=[
         Paragraph(
             tokens=[
@@ -51,7 +51,7 @@ DOC_EXAMPLE = Document(
                     (("topic", 0), ("marker", 1), ("scope", Span(2, 5))),
                 ),
                 GrammarAnnotation(
-                    "COPULA_POLITE",
+                    "COPULA",
                     (("complement", 2), ("copula", 3)),
                 ),
             ],
@@ -86,7 +86,7 @@ def test_multi_kanji_run_ruby():
     from kanjiland.format.parser import parse
 
     wire = from_debug(
-        "⟨H⟩0.2⟨F⟩grammar-0.1⟨E⟩\n⟨P⟩⟨E⟩\n"
+        "⟨H⟩0.2⟨F⟩grammar-1.0⟨E⟩\n⟨P⟩⟨E⟩\n"
         "⟨T⟩0⟨F⟩取り引き⟨F⟩と⟨L⟩ひ⟨F⟩取り引き⟨F⟩NOUN⟨F⟩transaction⟨E⟩\n"
         "⟨S⟩0:1⟨F⟩A transaction.⟨E⟩\n"
     )
@@ -105,7 +105,7 @@ def test_serializer_rejects_reserved_codepoints_in_content():
     from kanjiland.format.serializer import serialize
 
     bad = Document(
-        header=Header("0.2", "grammar-0.1"),
+        header=Header("0.2", "grammar-1.0"),
         paragraphs=[
             Paragraph(tokens=[Token(0, "x\ue00fy", (), "x", "NOUN", "g")])
         ],
@@ -133,7 +133,7 @@ def test_lint_catches_nonsequential_token_ids():
     from kanjiland.format.linter import lint
 
     doc = Document(
-        header=Header("0.2", "grammar-0.1"),
+        header=Header("0.2", "grammar-1.0"),
         paragraphs=[
             Paragraph(
                 tokens=[
@@ -150,7 +150,7 @@ def test_lint_catches_sentence_spans_not_tiling():
     from kanjiland.format.linter import lint
 
     doc = Document(
-        header=Header("0.2", "grammar-0.1"),
+        header=Header("0.2", "grammar-1.0"),
         paragraphs=[
             Paragraph(
                 tokens=DOC_EXAMPLE.paragraphs[0].tokens,
@@ -190,7 +190,7 @@ def test_lint_catches_ruby_count_mismatch():
     from kanjiland.format.linter import lint
 
     doc = Document(
-        header=Header("0.2", "grammar-0.1"),
+        header=Header("0.2", "grammar-1.0"),
         paragraphs=[
             Paragraph(tokens=[
                 # 学生 is ONE kanji run but we give TWO ruby entries.
@@ -206,7 +206,7 @@ def test_lint_counts_split_kanji_runs():
     from kanjiland.format.linter import lint
 
     good = Document(
-        header=Header("0.2", "grammar-0.1"),
+        header=Header("0.2", "grammar-1.0"),
         paragraphs=[
             Paragraph(tokens=[
                 Token(0, "取り引き", ("と", "ひ"), "取り引き", "NOUN", "transaction"),
@@ -216,7 +216,7 @@ def test_lint_counts_split_kanji_runs():
     assert not any(v.invariant == 4 for v in lint(good))
 
     bad = Document(
-        header=Header("0.2", "grammar-0.1"),
+        header=Header("0.2", "grammar-1.0"),
         paragraphs=[
             Paragraph(tokens=[
                 Token(0, "取り引き", ("とりひき",), "取り引き", "NOUN", "transaction"),
@@ -231,7 +231,7 @@ def test_lint_catches_out_of_bounds_span():
     from kanjiland.format.linter import lint
 
     doc = Document(
-        header=Header("0.2", "grammar-0.1"),
+        header=Header("0.2", "grammar-1.0"),
         paragraphs=[
             Paragraph(
                 tokens=[Token(0, "私", ("わたし",), "私", "PRON", "I")],
@@ -247,7 +247,7 @@ def test_lint_catches_overlapping_word_spans():
     from kanjiland.format.linter import lint
 
     doc = Document(
-        header=Header("0.2", "grammar-0.1"),
+        header=Header("0.2", "grammar-1.0"),
         paragraphs=[
             Paragraph(
                 tokens=DOC_EXAMPLE.paragraphs[0].tokens,
@@ -264,7 +264,7 @@ def test_lint_catches_unknown_grammar_rule():
     from kanjiland.format.linter import lint
 
     doc = Document(
-        header=Header("0.2", "grammar-0.1"),
+        header=Header("0.2", "grammar-1.0"),
         paragraphs=[
             Paragraph(
                 tokens=DOC_EXAMPLE.paragraphs[0].tokens,
@@ -281,7 +281,7 @@ def test_lint_catches_missing_required_role():
     from kanjiland.format.linter import lint
 
     doc = Document(
-        header=Header("0.2", "grammar-0.1"),
+        header=Header("0.2", "grammar-1.0"),
         paragraphs=[
             Paragraph(
                 tokens=DOC_EXAMPLE.paragraphs[0].tokens,
@@ -299,7 +299,7 @@ def test_lint_catches_bad_pos_tag():
     from kanjiland.format.linter import lint
 
     doc = Document(
-        header=Header("0.2", "grammar-0.1"),
+        header=Header("0.2", "grammar-1.0"),
         paragraphs=[
             Paragraph(tokens=[
                 Token(0, "私", ("わたし",), "私", "NONSENSE", "I"),
@@ -332,7 +332,7 @@ def test_round_trip_serialize_then_parse_multi_paragraph():
     from kanjiland.format.serializer import serialize
 
     doc = Document(
-        header=Header("0.2", "grammar-0.1"),
+        header=Header("0.2", "grammar-1.0"),
         paragraphs=[
             DOC_EXAMPLE.paragraphs[0],
             Paragraph(
@@ -352,7 +352,7 @@ def test_round_trip_with_word_and_multi_kanji():
     from kanjiland.format.serializer import serialize
 
     doc = Document(
-        header=Header("0.2", "grammar-0.1"),
+        header=Header("0.2", "grammar-1.0"),
         paragraphs=[
             Paragraph(
                 tokens=[
@@ -372,7 +372,7 @@ def test_round_trip_with_word_and_multi_kanji():
 def test_parse_rejects_unknown_record_tag():
     from kanjiland.format.parser import ParseError, parse
 
-    wire = from_debug("⟨H⟩0.2⟨F⟩grammar-0.1⟨E⟩\n") + "\ue00c" + "\ue010\n"
+    wire = from_debug("⟨H⟩0.2⟨F⟩grammar-1.0⟨E⟩\n") + "\ue00c" + "\ue010\n"
     with pytest.raises(ParseError):
         parse(wire)
 
@@ -389,7 +389,7 @@ def test_parse_rejects_record_before_paragraph():
     from kanjiland.format.parser import ParseError, parse
 
     wire = from_debug(
-        "⟨H⟩0.2⟨F⟩grammar-0.1⟨E⟩\n"
+        "⟨H⟩0.2⟨F⟩grammar-1.0⟨E⟩\n"
         "⟨T⟩0⟨F⟩私⟨F⟩わたし⟨F⟩私⟨F⟩PRON⟨F⟩I⟨E⟩\n"
     )
     with pytest.raises(ParseError):
