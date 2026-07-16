@@ -18,7 +18,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from kanjiland.format import (  # noqa: E402
     Document, GrammarAnnotation, Header, Paragraph, Sentence, Span, Token, Word,
 )
+from kanjiland.format.grammar import load_ruleset  # noqa: E402
 from kanjiland.format.linter import lint  # noqa: E402
+
+_RULES = set(load_ruleset("grammar-1.0"))
 
 
 def _valid_span(v, n: int):
@@ -63,6 +66,8 @@ def build_document(morphs, ann: dict) -> Document:
     # ⟨G⟩ — validate each target; a token-id target must be in range, a span valid.
     grammar = []
     for g in ann.get("grammar", []):
+        if g.get("rule") not in _RULES:  # skip hallucinated / dropped rule_ids
+            continue
         roles, ok = [], True
         for r, t in g.get("roles", {}).items():
             if isinstance(t, list):
