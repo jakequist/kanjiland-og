@@ -45,11 +45,16 @@ def _req(method: str, url: str, api_key: str, *, data=None, headers=None, timeou
         return json.load(resp)
 
 
-def build_requests_jsonl(sentences: list[str], model: str, path: Path) -> None:
-    """One chat-completions request per sentence; custom_id encodes input order."""
+# OpenAI caps a single batch at 50k requests, so large jobs are chunked and the
+# custom_id carries the GLOBAL row index so results reassemble across chunks.
+MAX_PER_BATCH = 45_000
+
+
+def build_requests_jsonl(sentences: list[str], model: str, path: Path, offset: int = 0) -> None:
+    """One chat-completions request per sentence; custom_id = GLOBAL input index."""
     effort = _effort_for(model)
     with path.open("w", encoding="utf-8") as f:
-        for i, s in enumerate(sentences):
+        for j, s in enumerate(sentences):
             body = {"model": model, "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": s},
@@ -57,7 +62,7 @@ def build_requests_jsonl(sentences: list[str], model: str, path: Path) -> None:
             if effort is not None:
                 body["reasoning_effort"] = effort
             f.write(json.dumps({
-                "custom_id": f"row-{i}", "method": "POST",
+                "custom_id": f"row-{offset + j}", "method": "POST",
                 "url": "/v1/chat/completions", "body": body,
             }, ensure_ascii=False) + "\n")
 
@@ -124,12 +129,13 @@ def main() -> None:
     s.add_argument("--input", required=True, type=Path, help="one Japanese sentence per line")
     s.add_argument("--model", required=True)
     s.add_argument("--work", type=Path, default=Path("data/processed/_m6_batch"))
+    s.add_argument("--dry-run", action="store_true", help="build chunk files + manifest, no API calls")
 
-    f = sub.add_parser("status", help="print batch status + request counts")
-    f.add_argument("--batch", required=True)
+    f = sub.add_parser("status", help="print status of all batches in a job")
+    f.add_argument("--work", required=True, type=Path, help="dir with manifest.json")
 
     g = sub.add_parser("fetch", help="poll until done, download, write translations")
-    g.add_argument("--batch", required=True)
+    g.add_argument("--work", required=True, type=Path, help="dir with manifest.json")
     g.add_argument("--out", required=True, type=Path)
     g.add_argument("--poll", type=int, default=60, help="seconds between status polls")
 
@@ -139,35 +145,60 @@ def main() -> None:
     if args.cmd == "submit":
         args.work.mkdir(parents=True, exist_ok=True)
         sents = [ln for ln in args.input.read_text(encoding="utf-8").splitlines() if ln.strip()]
-        jl = args.work / "requests.jsonl"
-        build_requests_jsonl(sents, args.model, jl)
-        fid = upload_file(jl, key)
-        batch = create_batch(fid, key)
-        (args.work / "batch_id.txt").write_text(batch["id"])
-        print(f"submitted {len(sents)} sentences | file={fid} | batch={batch['id']} | status={batch['status']}")
-        print(f"fetch later: uv run python tools/teacher/batch.py fetch --batch {batch['id']} --out <path>")
+        manifest = {"model": args.model, "total": len(sents), "batches": []}
+        for start in range(0, len(sents), MAX_PER_BATCH):
+            chunk = sents[start:start + MAX_PER_BATCH]
+            jl = args.work / f"requests_{start}.jsonl"
+            build_requests_jsonl(chunk, args.model, jl, offset=start)
+            if args.dry_run:
+                first = json.loads(jl.read_text(encoding="utf-8").splitlines()[0])["custom_id"]
+                last = json.loads(jl.read_text(encoding="utf-8").splitlines()[-1])["custom_id"]
+                print(f"  [dry] chunk {start}-{start+len(chunk)} ({len(chunk)} reqs) custom_ids {first}..{last}")
+                continue
+            fid = upload_file(jl, key)
+            batch = create_batch(fid, key)
+            manifest["batches"].append({"id": batch["id"], "start": start, "count": len(chunk)})
+            print(f"  chunk {start}-{start+len(chunk)} | batch={batch['id']} | {batch['status']}")
+        if args.dry_run:
+            print(f"[dry] would submit {len(sents)} sentences in "
+                  f"{-(-len(sents)//MAX_PER_BATCH)} batch(es) of model {args.model}")
+            return
+        (args.work / "manifest.json").write_text(json.dumps(manifest, indent=2))
+        print(f"submitted {len(sents)} sentences in {len(manifest['batches'])} batch(es) -> "
+              f"{args.work}/manifest.json")
+        print(f"fetch: uv run python tools/teacher/batch.py fetch --work {args.work} --out <path>")
 
     elif args.cmd == "status":
-        b = get_batch(args.batch, key)
-        print(f"status={b['status']} counts={b.get('request_counts')}")
+        man = json.loads((args.work / "manifest.json").read_text())
+        done = 0
+        for bm in man["batches"]:
+            b = get_batch(bm["id"], key)
+            rc = b.get("request_counts", {})
+            done += rc.get("completed", 0)
+            print(f"  {bm['id']} status={b['status']} counts={rc}")
+        print(f"total completed ~{done}/{man['total']}")
 
     elif args.cmd == "fetch":
-        while True:
-            b = get_batch(args.batch, key)
-            st = b["status"]
-            print(f"  status={st} counts={b.get('request_counts')}", flush=True)
-            if st in ("completed", "failed", "expired", "cancelled"):
-                break
-            time.sleep(args.poll)
-        if b["status"] != "completed":
-            sys.exit(f"batch ended as {b['status']}")
-        res = parse_results(download_content(b["output_file_id"], key))
+        man = json.loads((args.work / "manifest.json").read_text())
+        merged: dict[int, str | None] = {}
+        for bm in man["batches"]:
+            while True:
+                b = get_batch(bm["id"], key)
+                st = b["status"]
+                print(f"  {bm['id']} status={st} counts={b.get('request_counts')}", flush=True)
+                if st in ("completed", "failed", "expired", "cancelled"):
+                    break
+                time.sleep(args.poll)
+            if st != "completed":
+                print(f"  WARNING {bm['id']} ended {st} — its rows will be null")
+                continue
+            merged.update(parse_results(download_content(b["output_file_id"], key)))
         args.out.parent.mkdir(parents=True, exist_ok=True)
         with args.out.open("w", encoding="utf-8") as fh:
-            for i in range(len(res)):
-                fh.write(json.dumps({"i": i, "en": res.get(i)}, ensure_ascii=False) + "\n")
-        n_ok = sum(1 for v in res.values() if v)
-        print(f"wrote {n_ok}/{len(res)} translations -> {args.out}")
+            for i in range(man["total"]):
+                fh.write(json.dumps({"i": i, "en": merged.get(i)}, ensure_ascii=False) + "\n")
+        n_ok = sum(1 for v in merged.values() if v)
+        print(f"wrote {n_ok}/{man['total']} translations -> {args.out}")
 
 
 if __name__ == "__main__":
