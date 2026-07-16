@@ -60,7 +60,11 @@ uv sync --python "$PYVER" --extra eval
 
 echo "== [5/6] GPU check =="
 # Fail loud NOW if CUDA isn't visible — better than discovering it 8 runs deep.
-uv run python - <<'PY'
+# NOTE: every `uv run` below carries `--extra eval`. A bare `uv run` re-syncs the
+# env to the DEFAULT set and PRUNES optional extras — so a plain `uv run python`
+# here would silently uninstall sacrebleu/comet, and the sweep's eval step would
+# die with ModuleNotFoundError 3 hours in (exactly what bit the first live run).
+uv run --extra eval python - <<'PY'
 import torch, sys
 if not torch.cuda.is_available():
     sys.exit("FATAL: torch.cuda.is_available() is False — driver/torch mismatch")
@@ -76,7 +80,9 @@ fi
 # and can be `wandb sync`'d later. Pass WANDB_API_KEY + WANDB_MODE=online to log
 # live. setsid + </dev/null fully detaches so the launching ssh can return.
 export WANDB_MODE="${WANDB_MODE:-offline}"
-TQDM_DISABLE=1 setsid uv run python scripts/ablate.py \
+# --extra eval so the venv has sacrebleu/comet when ablate.py forks evaluate.py
+# (via sys.executable = .venv/bin/python); see the [5/6] note on extra pruning.
+TQDM_DISABLE=1 setsid uv run --extra eval python scripts/ablate.py \
   --base configs/m5_ablation_base.yaml --name all \
   --preset configs/m5_all_variants.yaml --seeds "$SEEDS" \
   --test-sets kftt-test --devices "$DEVICES" ${SHARD:+--shard "$SHARD"} \

@@ -128,3 +128,12 @@ handle them; this is the "why" so nobody re-simplifies them back into a bug.
    unless it's `setsid … </dev/null &`. And never `pkill -f ablate.py` from a
    shell whose own command line contains "ablate.py" — it matches itself
    (exit 143). Kill by PID, or match the running `python …/ablate.py` via `[a]`.
+7. **`uv run` prunes optional extras.** After `uv sync --extra eval`, a plain
+   `uv run python …` re-syncs to the DEFAULT set and *uninstalls* the `eval`
+   extra (sacrebleu/comet). Training still works, so it goes unnoticed until the
+   per-run eval step blows up with `ModuleNotFoundError` hours later. Always
+   `uv run --extra eval` (self-healing), or call `.venv/bin/python` directly.
+   The pruning bites hardest on the *fastest* runs (small vocab finish first),
+   so a whole ablation arm can die before slower runs even reach eval. To
+   recover without retraining: the checkpoint is already saved — re-run just
+   `scripts/evaluate.py` on `checkpoints/<run>/seed<N>/final.pt`.
