@@ -32,13 +32,19 @@ KFTT = Path("data/processed/kftt-test.jsonl")
 # USD per 1M tokens (input, output). Fill from the current OpenAI pricing page;
 # None => unknown, cost is reported in TOKENS only and flagged. Token *usage* is
 # always measured exactly from the API, so a missing price is a one-number fix.
+# USD per 1M tokens (input, output), STANDARD short-context rates (2026-07 pricing
+# page). Batch mode = Flex = exactly half these for the gpt-5.x flagships, so the
+# report/cost helpers take a `mode` factor rather than duplicating the table.
 PRICES: dict[str, tuple[float, float] | None] = {
-    "gpt-4.1-mini": (0.40, 1.60),   # known reference tier
-    "gpt-5-mini": (0.25, 2.00),     # confirm
-    "gpt-5.6-luna": None,           # brand-new — needs price
-    "gpt-5.6-sol": None,
-    "gpt-5.6-terra": None,
+    "gpt-4.1-mini": (0.40, 1.60),
+    "gpt-5-mini": (0.25, 2.00),
+    "gpt-5.6-sol": (5.00, 30.00),
+    "gpt-5.6-terra": (2.50, 15.00),
+    "gpt-5.6-luna": (1.00, 6.00),
+    "gpt-5.4-mini": (0.75, 4.50),
+    "gpt-5.4-nano": (0.20, 1.25),
 }
+BATCH_FACTOR = 0.5   # Batch/Flex list at half of Standard for these models
 
 
 def load_sample(n: int, seed: int) -> tuple[list[str], list[str]]:
