@@ -78,7 +78,14 @@ uv run python scripts/train.py --config configs/<name>.yaml
 
 ## Current status
 
-Milestone: **M8 — annotation model (e2e de-risk) — DONE** (branch `m8`, off `m7`).
+Milestone: **M9 — on-device inference + demo — DONE** (branch `m9`, off `m8`).
+docs/reports/m9-ondevice-demo.md: interactive reading-engine demo (tools/demo/,
+published Artifact — mincho + real ruby furigana, hover glosses, grammar
+highlight); runtime entry scripts/annotate.py (Ja → full annotation, ZERO NLP
+deps, rule #1); on-device CPU inference 521 tok/s @ 40% lint-pass (= GPU) — bf16
+autocast MANDATORY on cpu+cuda (fp32 diverges to 0% on this fragile small model);
+int8 2.4× smaller (209→85MB). Previously: **M8 — annotation model (e2e de-risk) —
+DONE** (branch `m8`, off `m7`).
 Previously: **M7 — annotation supervision + grammar-1.0 — DONE** (branch `m7`),
 **M6 — distillation dry run — DONE** (`m6`), **M5 — ablations — DONE** (`m5`). All
 per-milestone branches, ready for human review + merge to main.
