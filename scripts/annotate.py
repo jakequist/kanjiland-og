@@ -37,12 +37,24 @@ def load_model(config: Path, checkpoint: Path, device: str):
 
 
 def annotate(text: str, model, tok: Tokenizer, cfg: dict, device: str) -> str:
-    """Japanese text → annotation wire string (the model does everything)."""
+    """Japanese text → annotation wire string (the model does everything).
+
+    Generation MUST run under bf16 autocast — the model trained that way, and this
+    small model is numerically fragile: in fp32 its long autoregressive generation
+    diverges into unparseable output. bf16 autocast works on both cuda and cpu.
+    """
     ids = tok.encode(text)[: cfg["data"]["max_src_len"] - 1] + [tok.eos_id]
     src = torch.tensor([ids], device=device)
-    with torch.no_grad():
-        gen = greedy_decode(model, src, tok.bos_id, tok.eos_id, tok.pad_id, cfg["data"]["max_tgt_len"])
-    return tok.decode([i for i in gen[0] if i not in (tok.bos_id, tok.eos_id, tok.pad_id)])
+    dt = "cuda" if str(device).startswith("cuda") else "cpu"
+    ys = None
+    with torch.no_grad(), torch.autocast(device_type=dt, dtype=torch.bfloat16):
+        ys = greedy_decode(model, src, tok.bos_id, tok.eos_id, tok.pad_id, cfg["data"]["max_tgt_len"])
+    lst = ys[0].tolist()
+    if lst and lst[0] == tok.bos_id:
+        lst = lst[1:]
+    if tok.eos_id in lst:
+        lst = lst[: lst.index(tok.eos_id)]  # truncate at first EOS (match eval path)
+    return tok.decode(lst)
 
 
 def to_display(wire: str) -> dict:
