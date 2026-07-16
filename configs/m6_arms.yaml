@@ -1,0 +1,14 @@
+# The two arms of the M6 KD experiment, for `ablate.py --preset`. The ONLY
+# difference is which English targets the student trains on:
+#   baseline = human references (KFTT professional translations)
+#   kd       = gpt-5.6-luna teacher translations of the SAME Japanese sentences
+# Same Japanese inputs, same split, same model/steps/seed — so a chrF/COMET gap
+# on kftt-test is attributable to the target source alone (sequence-level KD).
+"baseline":
+  data.train: data/processed/m6_kd/baseline/train.jsonl
+  data.valid: data/processed/m6_kd/baseline/valid.jsonl
+  data.bin_dir: data/processed/m6_kd/baseline/tok
+"kd":
+  data.train: data/processed/m6_kd/kd/train.jsonl
+  data.valid: data/processed/m6_kd/kd/valid.jsonl
+  data.bin_dir: data/processed/m6_kd/kd/tok

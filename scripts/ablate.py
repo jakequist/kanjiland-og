@@ -89,7 +89,7 @@ def build_jobs(args) -> list[Job]:
             cfg = copy.deepcopy(base)
             for k, v in overrides.items():
                 _set_dotted(cfg, k, v)
-            run_name = f"m5-{args.name}-{label}"  # variant only; seed -> ckpt subdir
+            run_name = f"{args.prefix}-{args.name}-{label}"  # variant only; seed -> ckpt subdir
             cfg["run_name"] = run_name
             cfg["seed"] = seed
             gen = GEN_DIR / f"{run_name}-s{seed}.yaml"
@@ -141,6 +141,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--base", required=True, type=Path)
     ap.add_argument("--name", required=True, help="ablation name, e.g. 'pos'")
+    ap.add_argument("--prefix", default="m5", help="run_name prefix (milestone tag)")
     ap.add_argument("--vary", default=None, help="dotted.key=v1,v2,... (single-key axis)")
     ap.add_argument("--preset", default=None, help="yaml of named variants -> override dicts")
     ap.add_argument("--seeds", default="1,2")
