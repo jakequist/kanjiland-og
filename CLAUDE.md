@@ -78,9 +78,21 @@ uv run python scripts/train.py --config configs/<name>.yaml
 
 ## Current status
 
-Milestone: **M6 — distillation dry run — DONE** (on branch `m6`, forked from
-`m5`; both ready for human review + merge to main). Previously: **M5 — ablations
-round 1 — DONE** (branch `m5`). M0 (format), M1 (BPE tokenizer), M2 (22.1M-pair
+Milestone: **M8 — annotation model (e2e de-risk) — DONE** (branch `m8`, off `m7`).
+Previously: **M7 — annotation supervision + grammar-1.0 — DONE** (branch `m7`),
+**M6 — distillation dry run — DONE** (`m6`), **M5 — ablations — DONE** (`m5`). All
+per-milestone branches, ready for human review + merge to main.
+
+M7 (docs/reports/m7-annotation.md, ADR-011): grammar-1.0 = 120 rules (register/
+copula rules dropped — ⟨G⟩ marks only non-obvious grammar). Hybrid pipeline under
+tools/annotate/ (MeCab/UniDic deterministic ⟨T⟩ + luna teacher for gloss/⟨W⟩/⟨S⟩/⟨G⟩,
+linter gate). Stage-1: 10k KFTT sentences → **9,388 silver annotations at 93.9% gate**
+(~$30 luna Batch; auto-repair in assemble.py lifted 83%→93.9% free). M8 (docs/reports/
+m8-annotation-model.md): from-scratch model (Ja → full wire format), trained FREE on
+6.8k silver (local 4090, $0). **e2e proven** — parse 77% / lint-pass 38% / reconstruct
+40%; valid structure, rough content (minimum-spend, per Jake). Improve later: expand
+silver + constrained decoding + annotation F1 metrics. Next: M9 (on-device) or the
+quality-improvement phase. M0 (format), M1 (BPE tokenizer), M2 (22.1M-pair
 corpus), M3 (52.3M from-scratch transformer, KFTT-test chrF 47.2 vs 11.9
 baseline), M4 (chrF/BLEU/COMET eval harness + seed-variance protocol,
 docs/reports/m4-results.md), and M5 (three-axis ablation sweep,
