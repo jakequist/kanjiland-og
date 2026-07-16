@@ -30,7 +30,6 @@ WIRE_EXAMPLE = from_debug(
     "⟨T⟩4⟨F⟩。⟨F⟩⟨F⟩。⟨F⟩PUNCT⟨F⟩⟨E⟩\n"
     "⟨S⟩0:5⟨F⟩I am a student.⟨E⟩\n"
     "⟨G⟩TOPIC_WA⟨F⟩topic=0⟨F⟩marker=1⟨F⟩scope=2:5⟨E⟩\n"
-    "⟨G⟩COPULA⟨F⟩complement=2⟨F⟩copula=3⟨E⟩\n"
 )
 
 DOC_EXAMPLE = Document(
@@ -49,10 +48,6 @@ DOC_EXAMPLE = Document(
                 GrammarAnnotation(
                     "TOPIC_WA",
                     (("topic", 0), ("marker", 1), ("scope", Span(2, 5))),
-                ),
-                GrammarAnnotation(
-                    "COPULA",
-                    (("complement", 2), ("copula", 3)),
                 ),
             ],
         )

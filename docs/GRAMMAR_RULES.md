@@ -4,8 +4,8 @@ Closed, versioned set of `rule_id`s for ⟨G⟩ records (FORMAT_SPEC §4.5). The
 validates every ⟨G⟩ against the version pinned in a file's header (`⟨F⟩grammar-1.0`).
 
 **Scope** (ADR-011, GRAMMAR_INVENTORY_PROPOSAL.md — accepted): intermediate-to-
-advanced readers of literature + newspapers. grammar-1.0 is **Tier 1**: **122**
-high-frequency rules (N5=21, N4=38, N3=38, N2=20, N1=5) — dense enough in the
+advanced readers of literature + newspapers. grammar-1.0 is **Tier 1**: **120**
+high-frequency rules (N5=19, N4=38, N3=38, N2=20, N1=5) — dense enough in the
 corpus that the teacher labels them reliably and the student can learn them.
 **Tier 2** (classical 文語, newspaper register, the advanced N1 tail — ~30 rules)
 is enumerated at the bottom as *Planned grammar-1.1* and frozen only after Tier-1
@@ -127,11 +127,6 @@ GENITIVE_NO:
   level: N5
   roles: {modifier: {target: span, required: true}, marker: {target: token, required: true}, head: {target: span, required: false}}
   description: 'の linking a noun modifier to its head (possession / attribute / apposition).'
-COPULA:
-  name: 'Copula だ / です (nominal predication)'
-  level: N5
-  roles: {complement: {target: span, required: true}, copula: {target: token, required: true}}
-  description: 'X だ / です predicates "is X" (register captured separately by 丁寧).'
 ```
 
 ## B. Compound & complex particles (N3-N1) — newspaper/academic workhorse
@@ -537,11 +532,6 @@ KENJOU_IRREG:
   level: N3
   roles: {verb: {target: span, required: true}}
   description: 'Suppletive humble verbs.'
-TEINEI_DESUMASU:
-  name: '丁寧 です / ます'
-  level: N5
-  roles: {predicate: {target: span, required: true}}
-  description: 'Polite (addressee-oriented) register.'
 TE_ITADAKU:
   name: '〜ていただく humble receiving'
   level: N3
@@ -704,8 +694,7 @@ doesn't poison the first dataset.
 `CAUS_SHIMU` (しむ), `RHETORICAL_NYA` (〜んや), `NEG_INTENT_MAJI` (まじ),
 `EMPH_NAMU` (なむ).
 
-**K. Written-register & newspaper-specific (N2-N1):** `DE_ARU` (である copula),
-`TAIGEN_DOME` (体言止め nominal ending), `DERIV_TEKI` (〜的), `DERIV_KA` (〜化),
+**K. Written-register & newspaper-specific (N2-N1):** `TAIGEN_DOME` (体言止め nominal ending), `DERIV_TEKI` (〜的), `DERIV_KA` (〜化),
 `DERIV_SEI` (〜性), `WO_MEGURU` (をめぐる), `MONO_TO_OMOWARERU` (〜ものと思われる),
 `WO_YOGINAKU` (〜を余儀なくされる).
 

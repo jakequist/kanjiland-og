@@ -93,11 +93,18 @@ inventory tilts N2-N1 and adds two categories beginner sets omit — classical
 文語 and formal newspaper register. Rolled out in two tiers to keep the long
 tail honest (rare rules the teacher can't label consistently and the student
 can't learn):
-  - **grammar-1.0 = Tier 1**: 121 high-frequency rules (N5=20/N4=38/N3=38/N2=20/
+  - **grammar-1.0 = Tier 1**: 120 high-frequency rules (N5=19/N4=38/N3=38/N2=20/
     N1=5) across 9 functional categories (case & info-structure particles;
     compound particles; tense/aspect/voice; connectives; nominalization & formal
     nouns; modality/evidentiality; keigo; set patterns; focus particles).
     Approved granularity splits: ようだ (infer/simile), そうだ (hearsay/appear).
+    Exclusion principle (M7 refinement, Jake): ⟨G⟩ marks only grammar that is
+    NON-OBVIOUS to an intermediate-advanced reader. Pure register / trivial
+    predication is therefore NOT annotated — `COPULA` (だ/です), `TEINEI_DESUMASU`
+    (です/ます politeness), and `DE_ARU` (である) are dropped: they are the highest-
+    frequency constructions and would dilute the signal, while their register is
+    inferable from the surface token. Kept: keigo (non-trivial, socially meaningful)
+    and tense/negation (meaning-bearing, not mere register).
   - **grammar-1.1 = Tier 2** (~30, planned): classical 文語 (curated ~14),
     newspaper register (~8), advanced A-I tail. Frozen only AFTER the M7 gate +
     human audit show Tier-1 labels are clean, so tail-noise doesn't poison the

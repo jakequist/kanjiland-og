@@ -133,8 +133,9 @@ Input paragraph: `私は学生です。`
 ⟨T⟩4⟨F⟩。⟨F⟩⟨F⟩。⟨F⟩PUNCT⟨F⟩⟨E⟩
 ⟨S⟩0:5⟨F⟩I am a student.⟨E⟩
 ⟨G⟩TOPIC_WA⟨F⟩topic=0⟨F⟩marker=1⟨F⟩scope=2:5⟨E⟩
-⟨G⟩COPULA_POLITE⟨F⟩complement=2⟨F⟩copula=3⟨E⟩
 ```
+(⟨G⟩ marks only *non-obvious* grammar — the bare copula です carries no ⟨G⟩ record;
+its politeness is inferable from the surface token. See docs/GRAMMAR_RULES.md.)
 
 (Punctuation is a token — the fix from spec v0.1. Note ⟨S⟩ span is 0:5.)
 
