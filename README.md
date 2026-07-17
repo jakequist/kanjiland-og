@@ -148,3 +148,10 @@ uv run ruff check --fix .   # lint + format
 
 Python ≥3.11, `uv`, `ruff`, `pytest`. Type hints everywhere; dataclasses for
 records; conventional commits; one branch per milestone.
+
+## License
+
+Code: **MIT** (`LICENSE`). Data & third-party components have separate terms —
+see [`NOTICE.md`](NOTICE.md). The published silver-annotation dataset is
+**CC-BY-SA 3.0** (KFTT-derived); the 22.1M training corpus is **not redistributed**
+(JParaCrawl-heavy) — rebuild it from the pipeline in `src/kanjiland/data/`.
