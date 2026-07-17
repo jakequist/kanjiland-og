@@ -39,6 +39,18 @@ result — it's the from-scratch constraints and what they taught.
 The **system** is complete end-to-end; the **annotation quality** is an honest
 first-pass baseline (trained on 6.8k examples — see "Where it stands").
 
+## Models & datasets (🤗 Hugging Face)
+
+| | | license |
+|:--|:--|:--|
+| **Model** | [kanjiland-translation](https://huggingface.co/jakequist/kanjiland-translation) — from-scratch Ja→En (chrF 47.2) | MIT |
+| **Model** | [kanjiland-annotation](https://huggingface.co/jakequist/kanjiland-annotation) — Ja→full annotation format | MIT |
+| **Dataset** | [kanjiland-silver-annotations](https://huggingface.co/datasets/jakequist/kanjiland-silver-annotations) — 9,388 KFTT annotations | CC-BY-SA 3.0 |
+| **Dataset** | [kanjiland-kd-translations](https://huggingface.co/datasets/jakequist/kanjiland-kd-translations) — 185k KFTT human+teacher pairs | CC-BY-SA 3.0 |
+
+The 22.1M training corpus is **not published** (JParaCrawl-heavy) — rebuild it from
+the pipeline in `src/kanjiland/data/`. See [`NOTICE.md`](NOTICE.md) for all terms.
+
 ## The research log
 
 **M0-M1 — foundations.** A tagged wire format ([spec](docs/FORMAT_SPEC.md)) using
