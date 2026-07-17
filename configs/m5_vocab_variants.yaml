@@ -1,0 +1,15 @@
+# Vocab-size ablation variants for ablate.py --preset. Each changes the
+# tokenizer + its pretokenized binaries together (a multi-key axis).
+# Requires the 8k/32k tokenizers retrained on M2 + pretokenized into tok8k/tok32k.
+"8k":
+  tokenizer.path: data/processed/tokenizer-8k.json
+  tokenizer.vocab_size: 8000
+  data.bin_dir: data/processed/tok8k
+"16k":
+  tokenizer.path: data/processed/tokenizer-16k.json
+  tokenizer.vocab_size: 16000
+  data.bin_dir: data/processed/tok
+"32k":
+  tokenizer.path: data/processed/tokenizer-32k.json
+  tokenizer.vocab_size: 32000
+  data.bin_dir: data/processed/tok32k

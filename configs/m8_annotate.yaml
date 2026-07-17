@@ -1,0 +1,51 @@
+# M8 — annotation model (de-risk / e2e). Same from-scratch transformer as the M5
+# winner (RoPE / 16k / three-way tied), but the TARGET is the full annotation wire
+# string (⟨T⟩/⟨W⟩/⟨S⟩/⟨G⟩), not English — so the decoder is long (targets average
+# ~800 tokens, cap 1024). The PUA separators are already special tokens in the 16k
+# vocab (M1), so the wire tokenizes natively.
+#
+# Minimum-spend de-risk (Jake): reuse the FREE 9.4k M7 silver set (6.8k after
+# length-filtering), train locally on the 4090, and ask only "can a from-scratch
+# model learn to emit VALID format at all?" Quality is expected to be rough on this
+# little data; expand the silver set later if the approach holds.
+run_name: m8-annotate
+seed: 1
+
+data:
+  train: data/processed/m8_annot/train.jsonl
+  valid: data/processed/m8_annot/valid.jsonl
+  bin_dir: data/processed/m8_annot/tok
+  max_src_len: 128
+  max_tgt_len: 1024          # annotation wire is long (p95 ~1620; we filtered to <=1024)
+
+tokenizer:
+  path: data/processed/tokenizer-16k.json
+  vocab_size: 16000
+
+model:
+  d_model: 512
+  n_heads: 8
+  d_ff: 2048
+  encoder_layers: 6
+  decoder_layers: 6
+  dropout: 0.1
+  pos_encoding: rope         # relative — handles the long decoder cleanly (M5 winner)
+  tie_embeddings: three_way
+  norm: pre
+
+train:
+  tokens_per_batch: 16000    # target-token budget; ~long targets => fewer seqs/batch
+  grad_accum_steps: 2
+  max_steps: 8000            # ~small data, many passes; watch valid loss for overfit
+  lr: 4.0e-4
+  warmup_steps: 500
+  label_smoothing: 0.1
+  precision: bf16
+  compile: true
+  checkpoint_every: 999999
+  eval_every: 500
+  log_every: 100
+
+wandb:
+  project: kanjiland
+  tags: [m8, annotate]

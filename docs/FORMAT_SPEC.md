@@ -60,7 +60,7 @@ heuristics; see M2). Each paragraph is annotated independently:
 ```
 ⟨H⟩format_version⟨F⟩ruleset_version⟨E⟩
 ```
-Example: `⟨H⟩0.2⟨F⟩grammar-0.1⟨E⟩`
+Example: `⟨H⟩0.2⟨F⟩grammar-1.0⟨E⟩`
 
 ### 4.2 Token ⟨T⟩ — morpheme-level
 
@@ -124,7 +124,7 @@ Example: `⟨G⟩TOPIC_WA⟨F⟩topic=0⟨F⟩marker=1⟨F⟩scope=2:5⟨E⟩`
 Input paragraph: `私は学生です。`
 
 ```
-⟨H⟩0.2⟨F⟩grammar-0.1⟨E⟩
+⟨H⟩0.2⟨F⟩grammar-1.0⟨E⟩
 ⟨P⟩⟨E⟩
 ⟨T⟩0⟨F⟩私⟨F⟩わたし⟨F⟩私⟨F⟩PRON⟨F⟩I⟨E⟩
 ⟨T⟩1⟨F⟩は⟨F⟩⟨F⟩は⟨F⟩PART⟨F⟩(topic marker)⟨E⟩
@@ -133,8 +133,9 @@ Input paragraph: `私は学生です。`
 ⟨T⟩4⟨F⟩。⟨F⟩⟨F⟩。⟨F⟩PUNCT⟨F⟩⟨E⟩
 ⟨S⟩0:5⟨F⟩I am a student.⟨E⟩
 ⟨G⟩TOPIC_WA⟨F⟩topic=0⟨F⟩marker=1⟨F⟩scope=2:5⟨E⟩
-⟨G⟩COPULA_POLITE⟨F⟩complement=2⟨F⟩copula=3⟨E⟩
 ```
+(⟨G⟩ marks only *non-obvious* grammar — the bare copula です carries no ⟨G⟩ record;
+its politeness is inferable from the surface token. See docs/GRAMMAR_RULES.md.)
 
 (Punctuation is a token — the fix from spec v0.1. Note ⟨S⟩ span is 0:5.)
 

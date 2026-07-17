@@ -1,0 +1,106 @@
+[
+  {
+    "run": "m6-exp-baseline",
+    "test_set": "kftt-test",
+    "seed": 1,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 47.289009626655066,
+      "bleu": 21.148778022495414,
+      "comet": 0.7562092000040515
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m6-exp-baseline",
+    "test_set": "m2-test",
+    "seed": 1,
+    "beam": 4,
+    "n": 3000,
+    "metrics": {
+      "chrf": 31.85955611681543,
+      "bleu": 6.422376624273603,
+      "comet": 0.5706675865749518
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m6-exp-baseline",
+    "test_set": "kftt-test",
+    "seed": 2,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 46.47937077699192,
+      "bleu": 20.840006731218622,
+      "comet": 0.7532247789204121
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m6-exp-baseline",
+    "test_set": "m2-test",
+    "seed": 2,
+    "beam": 4,
+    "n": 3000,
+    "metrics": {
+      "chrf": 31.53331830814941,
+      "bleu": 6.777553162198199,
+      "comet": 0.5785275716086229
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m6-exp-kd",
+    "test_set": "kftt-test",
+    "seed": 1,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 43.94236911339308,
+      "bleu": 15.714293868190262,
+      "comet": 0.7562100627812846
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m6-exp-kd",
+    "test_set": "m2-test",
+    "seed": 1,
+    "beam": 4,
+    "n": 3000,
+    "metrics": {
+      "chrf": 33.49134430676292,
+      "bleu": 7.003078132030743,
+      "comet": 0.5939578200827043
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m6-exp-kd",
+    "test_set": "kftt-test",
+    "seed": 2,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 44.07042598228299,
+      "bleu": 16.14583951328054,
+      "comet": 0.7524441262000594
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m6-exp-kd",
+    "test_set": "m2-test",
+    "seed": 2,
+    "beam": 4,
+    "n": 3000,
+    "metrics": {
+      "chrf": 33.49864255583949,
+      "bleu": 6.941167159916692,
+      "comet": 0.5982229537169138
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  }
+]

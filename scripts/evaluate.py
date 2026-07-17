@@ -1,12 +1,16 @@
-"""Evaluate an M3 checkpoint on a test set: chrF vs the word-substitution baseline.
+"""M4 evaluation harness: one command scores any checkpoint and updates the
+results doc.
 
     uv run python scripts/evaluate.py --config configs/m3_transformer_base.yaml \
-        --checkpoint checkpoints/m3-transformer-base/final.pt --split test
+        --checkpoint checkpoints/m3-transformer-base/final.pt \
+        --test-sets kftt-test,m2-test --beam 4
 
-chrF (character n-gram F-score) is our iteration metric (ADR-008) — robust for
-Japanese→English and cheap to compute. The full metric stack (SacreBLEU + COMET)
-is M4; this is the M3 "does it beat the baseline / is the English fluent" check.
-Runs the baseline even without a --checkpoint, to print the floor.
+Translates each test set with the model, scores it with chrF + SacreBLEU + COMET
+(ADR-008), and upserts the numbers into docs/reports/m4-results.{json,md}. Runs
+with ≥2 seeds accumulate into mean±std automatically (seed-variance protocol).
+
+Built-in test sets: ``kftt-test`` (formal), ``m2-test`` (mixed). Also accepts a
+raw ``*.jsonl`` path, or a SacreBLEU set like ``wmt20`` (fetched for ja-en).
 """
 
 from __future__ import annotations
@@ -18,15 +22,21 @@ from pathlib import Path
 import torch
 import yaml
 
-from kanjiland.eval.baseline import build_lexicon, translate as baseline_translate
-from kanjiland.model import ModelConfig, Transformer, beam_search, greedy_decode
+from kanjiland.eval import metrics, results
+from kanjiland.eval.translate import translate
+from kanjiland.model import ModelConfig, Transformer
 from kanjiland.tokenizer import Tokenizer
-from kanjiland.train.device import amp_context, pick_device
+from kanjiland.train.device import pick_device
+
+BUILTIN_TEST_SETS = {
+    "kftt-test": "data/processed/kftt-test.jsonl",
+    "m2-test": "data/processed/test.jsonl",
+}
 
 
-def _read_pairs(path: Path):
+def _read_jsonl(path: Path) -> tuple[list[str], list[str]]:
     ja, en = [], []
-    with path.open(encoding="utf-8") as f:
+    with Path(path).open(encoding="utf-8") as f:
         for line in f:
             o = json.loads(line)
             ja.append(o["ja"])
@@ -34,90 +44,100 @@ def _read_pairs(path: Path):
     return ja, en
 
 
-def _ids_to_text(ids, tok: Tokenizer) -> str:
-    lst = ids.tolist()
-    if lst and lst[0] == tok.bos_id:
-        lst = lst[1:]
-    if tok.eos_id in lst:
-        lst = lst[: lst.index(tok.eos_id)]
-    return tok.decode(lst)
+def load_test_set(name: str) -> tuple[list[str], list[str]]:
+    """Return (sources_ja, references_en) for a named/pathed test set."""
+    if name in BUILTIN_TEST_SETS:
+        return _read_jsonl(BUILTIN_TEST_SETS[name])
+    if name.endswith(".jsonl"):
+        return _read_jsonl(Path(name))
+    if name.startswith("wmt"):  # standard set fetched via SacreBLEU
+        from sacrebleu.utils import get_reference_files, get_source_file
 
-
-@torch.no_grad()
-def model_translate(model, tok, sentences, device, beam, max_src, max_len, batch_size=64):
-    """Translate ja sentences -> en strings (greedy if beam<=1 else beam)."""
-    out: list[str] = []
-    for i in range(0, len(sentences), batch_size):
-        chunk = sentences[i : i + batch_size]
-        enc = [tok.encode(s)[: max_src - 1] + [tok.eos_id] for s in chunk]
-        width = max(len(e) for e in enc)
-        src = torch.full((len(enc), width), tok.pad_id, dtype=torch.long)
-        for j, e in enumerate(enc):
-            src[j, : len(e)] = torch.tensor(e)
-        src = src.to(device)
-        with amp_context(device):
-            if beam > 1:
-                gen = beam_search(model, src, tok.bos_id, tok.eos_id, tok.pad_id, beam, max_len)
-            else:
-                gen = greedy_decode(model, src, tok.bos_id, tok.eos_id, tok.pad_id, max_len)
-        out.extend(_ids_to_text(g, tok) for g in gen)
-        print(f"  translated {min(i + batch_size, len(sentences))}/{len(sentences)}", flush=True)
-    return out
+        src = Path(get_source_file(name, "ja-en")).read_text(encoding="utf-8").splitlines()
+        ref = Path(get_reference_files(name, "ja-en")[0]).read_text(encoding="utf-8").splitlines()
+        return src, ref
+    raise ValueError(f"unknown test set: {name}")
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--config", required=True, type=Path)
-    ap.add_argument("--checkpoint", type=Path, default=None)
-    ap.add_argument("--split", default="test")
-    ap.add_argument("--beam", type=int, default=1)
-    ap.add_argument("--limit", type=int, default=None, help="evaluate only N examples")
+    ap.add_argument("--checkpoint", required=True, type=Path)
+    ap.add_argument("--test-sets", default="kftt-test,m2-test")
+    ap.add_argument("--beam", type=int, default=4)
+    ap.add_argument("--metrics", default="chrf,bleu,comet")
+    ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument("--seed", type=int, default=None, help="override the seed label")
+    ap.add_argument("--results", type=Path, default=Path("docs/reports/m4-results.json"))
     args = ap.parse_args()
-
-    import sacrebleu
 
     cfg = yaml.safe_load(args.config.read_text())
     tok = Tokenizer.load(cfg["tokenizer"]["path"])
     device = pick_device()
+    wanted = args.metrics.split(",")
 
-    test_path = Path(cfg["data"]["train"]).with_name(f"{args.split}.jsonl")
-    ja, en = _read_pairs(test_path)
-    if args.limit:
-        ja, en = ja[: args.limit], en[: args.limit]
-    print(f"eval {args.split}: {len(ja)} pairs")
+    # --- load model ---------------------------------------------------------
+    ckpt = torch.load(args.checkpoint, map_location=device, weights_only=False)
+    mcfg = ModelConfig.from_dict(ckpt["config"]["model"], vocab_size=tok.vocab_size)
+    mcfg.pad_id = tok.pad_id
+    model = Transformer(mcfg).to(device).eval()
+    model.load_state_dict(ckpt["model"])
+    run = ckpt["config"].get("run_name", args.checkpoint.stem)
+    seed = args.seed if args.seed is not None else ckpt["config"].get("seed", 0)
+    print(f"eval {run} (seed {seed}, step {ckpt.get('step')}) on {device}")
 
-    # --- baseline -----------------------------------------------------------
-    train_ja, train_en = _read_pairs(Path(cfg["data"]["train"]))
-    print("building baseline lexicon ...")
-    lex = build_lexicon(zip(train_ja, train_en), tok, max_pairs=200_000)
-    base_hyps = [baseline_translate(s, tok, lex) for s in ja]
-    base_chrf = sacrebleu.corpus_chrf(base_hyps, [en]).score
-    print(f"baseline chrF: {base_chrf:.2f}")
+    comet = metrics.CometScorer() if "comet" in wanted else None
+    records = results.load(args.results)
 
-    # --- model --------------------------------------------------------------
-    if args.checkpoint:
-        ckpt = torch.load(args.checkpoint, map_location=device, weights_only=False)
-        mcfg = ModelConfig.from_dict(ckpt["config"]["model"], vocab_size=tok.vocab_size)
-        mcfg.pad_id = tok.pad_id
-        model = Transformer(mcfg).to(device).eval()
-        model.load_state_dict(ckpt["model"])
-        print(f"loaded {args.checkpoint} (step {ckpt.get('step')})")
-        hyps = model_translate(
+    max_src = cfg["data"]["max_src_len"]
+    max_len = cfg["data"]["max_tgt_len"]
+    for ts in args.test_sets.split(","):
+        srcs, refs = load_test_set(ts)
+        if args.limit:
+            srcs, refs = srcs[: args.limit], refs[: args.limit]
+        print(f"\n=== {ts}: {len(srcs)} pairs, translating (beam={args.beam}) ===", flush=True)
+        hyps = translate(
             model,
             tok,
-            ja,
+            srcs,
             device,
-            args.beam,
-            cfg["data"]["max_src_len"],
-            cfg["data"]["max_tgt_len"],
+            beam=args.beam,
+            max_src=max_src,
+            max_len=max_len,
+            on_progress=lambda d, t: print(f"  {d}/{t}", flush=True) if d % 512 == 0 else None,
         )
-        model_chrf = sacrebleu.corpus_chrf(hyps, [en]).score
-        print(f"\nmodel chrF:    {model_chrf:.2f}  (beam={args.beam})")
-        print(f"baseline chrF: {base_chrf:.2f}")
-        print(f"delta:         {model_chrf - base_chrf:+.2f}")
-        print("\n--- samples ---")
-        for s, h, r in list(zip(ja, hyps, en))[:5]:
-            print(f"JA:  {s}\nGEN: {h}\nREF: {r}\n")
+
+        m: dict = {}
+        sig = None
+        if "chrf" in wanted:
+            m["chrf"] = metrics.chrf(hyps, refs)
+        if "bleu" in wanted:
+            m["bleu"], sig = metrics.bleu(hyps, refs)
+        if "comet" in wanted:
+            print("  scoring COMET ...", flush=True)
+            try:
+                m["comet"] = comet.score(srcs, hyps, refs)
+            except Exception as e:  # never let the heavy metric lose chrF/BLEU
+                print(f"  COMET failed ({type(e).__name__}: {e}); recording null", flush=True)
+                m["comet"] = None
+
+        record = {
+            "run": run,
+            "test_set": ts,
+            "seed": seed,
+            "beam": args.beam,
+            "n": len(srcs),
+            "metrics": m,
+            "bleu_signature": sig,
+        }
+        results.upsert(records, record)
+        print("  " + "  ".join(f"{k}={v:.2f}" for k, v in m.items()))
+
+    # --- persist + regenerate the results doc -------------------------------
+    results.save(args.results, records)
+    md_path = args.results.with_suffix(".md")
+    md_path.write_text(results.render_markdown(records), encoding="utf-8")
+    print(f"\nupdated {args.results} and {md_path}")
 
 
 if __name__ == "__main__":

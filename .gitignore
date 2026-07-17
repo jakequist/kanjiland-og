@@ -91,3 +91,9 @@ wandb/
 Thumbs.db
 .idea/
 .vscode/
+
+# Generated ablation configs
+/configs/_generated/
+
+# Run logs (ablation sweeps)
+/logs/

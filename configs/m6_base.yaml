@@ -1,0 +1,51 @@
+# M6 KD dry-run base config. ablate.py copies this, applies the m6_arms preset
+# (which swaps ONLY the data paths: teacher-En vs human-En targets), and stamps a
+# per-seed run. Everything else is held identical between the two arms — that
+# constancy IS the experiment (the single variable is the target column).
+#
+# Scale is the 185k KFTT subset, NOT the M3 22M corpus: 12k steps (~40 epochs on
+# 183k train pairs) is enough for a 52M student to converge without the extreme
+# overfitting 100k steps would cause on this much smaller set. Model = the M5
+# winner (RoPE / 16k / three-way tied).
+run_name: m6-kd            # overridden per-arm by ablate.py
+seed: 1                    # overridden per-seed
+
+data:
+  # overridden per-arm by m6_arms.yaml; defaults to the KD arm
+  train: data/processed/m6_kd/kd/train.jsonl
+  valid: data/processed/m6_kd/kd/valid.jsonl
+  bin_dir: data/processed/m6_kd/kd/tok
+  max_src_len: 128
+  max_tgt_len: 128
+
+tokenizer:
+  path: data/processed/tokenizer-16k.json
+  vocab_size: 16000
+
+model:
+  d_model: 512
+  n_heads: 8
+  d_ff: 2048
+  encoder_layers: 6
+  decoder_layers: 6
+  dropout: 0.1
+  pos_encoding: rope
+  tie_embeddings: three_way
+  norm: pre
+
+train:
+  tokens_per_batch: 12000
+  grad_accum_steps: 2
+  max_steps: 12000         # ~40 epochs on 183k train; matched across both arms
+  lr: 5.0e-4
+  warmup_steps: 1000
+  label_smoothing: 0.1
+  precision: bf16
+  compile: true
+  checkpoint_every: 999999 # keep only final.pt
+  eval_every: 1000
+  log_every: 100
+
+wandb:
+  project: kanjiland
+  tags: [m6, kd]

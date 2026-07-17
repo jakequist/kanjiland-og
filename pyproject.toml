@@ -13,8 +13,12 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov", "hypothesis", "ruff"]
-eval = ["sacrebleu", "unbabel-comet"]
+eval = ["sacrebleu", "unbabel-comet", "setuptools<80"]  # <80: still ships pkg_resources (COMET/torchmetrics need it)
 data = ["datasets", "requests", "fasttext-wheel", "sentence-transformers"]
+# Offline MeCab+UniDic for M7 deterministic labels (seg/ruby/lemma/pos). ADR-007:
+# tools/ ONLY — never imported by src/kanjiland (runtime rule #1). fugashi bundles
+# MeCab; unidic-lite is a pip-installable dictionary (no system install).
+annotate = ["fugashi", "unidic-lite"]
 
 # PyTorch CUDA build pin — LINUX ONLY. The default PyPI torch wheel is built
 # against CUDA 13 (cu130), which needs a driver >= 580; the Linux training box

@@ -21,7 +21,7 @@ from .records import Document, Paragraph, Span
 from .separators import contains_reserved
 
 KNOWN_FORMAT_VERSIONS = frozenset({"0.2"})
-KNOWN_RULESET_VERSIONS = frozenset({"grammar-0.1"})
+KNOWN_RULESET_VERSIONS = frozenset({"grammar-1.0"})
 
 # FORMAT_SPEC.md §6 — closed POS tagset.
 POS_TAGS = frozenset({

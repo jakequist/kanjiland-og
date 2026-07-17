@@ -1,5 +1,8 @@
 # Roadmap
 
+**Status: M0–M10 complete.** From-scratch, on-device Japanese reading engine,
+end-to-end. See the [README](../README.md) research log.
+
 Each milestone ends with: passing tests, a W&B report (if training was
 involved), and a short writeup in `docs/reports/`. Milestones are sized to be
 individually completable; don't start Mn+1 with Mn broken.
@@ -54,40 +57,42 @@ Train transformer-base (~60M) Ja→En.
 **Done when:** trained model beats a word-substitution baseline by a mile and
 produces recognizably fluent English on KFTT test; W&B report with curves.
 
-## M4 — Evaluation harness  ← CURRENT
-SacreBLEU + chrF + COMET runners; standard test sets (KFTT test, WMT);
-seed-variance protocol; results tables auto-generated from W&B.
-**Done when:** one command evaluates any checkpoint and updates a results doc.
+## M4 — Evaluation harness  ✅ DONE
+`scripts/evaluate.py` scores any checkpoint on named test sets (kftt-test,
+m2-test, wmt22, raw jsonl) with chrF + SacreBLEU + COMET and updates
+docs/reports/m4-results.{json,md}; ≥2 seeds auto-aggregate to mean±std
+(seed-variance protocol, ADR-008). M3 model @ beam 4 (chrF/BLEU/COMET):
+KFTT-test 47.2/20.5/0.77, m2-test 55.3/30.4/0.81, WMT22 42.2/16.3/0.76.
 
-## M5 — Ablations round 1 + writeup
+## M5 — Ablations round 1 + writeup  ✅ DONE
 Vocab size; tied vs untied embeddings; RoPE vs sinusoidal (incl. length
 extrapolation eval). ≥2 seeds each.
 **Done when:** `docs/reports/ablations-1.md` with tables, error bars,
 interpretation — the flagship portfolio artifact.
 
-## M6 — Distillation
+## M6 — Distillation  ✅ DONE
 Sequence-level KD: teacher translates monolingual Ja corpus → train student;
 compare student vs same-size model on original data. (Also the dry run for
 annotation distillation in M7.)
 **Learning targets:** KD theory, teacher choice, synthetic-data hygiene.
 
-## M7 — Annotation supervision + grammar inventory
+## M7 — Annotation supervision + grammar inventory  ✅ DONE
 Finalize GRAMMAR_RULES.md v1. Generate silver training data in FORMAT_SPEC
 format (supervision source per ADR-007). Linter as data gate; measure
 gate pass-rate. Human-audit a sample (the human reads Japanese — use it).
 
-## M8 — Annotation model (the full product format)
+## M8 — Annotation model (the full product format)  ✅ DONE
 Single model or multi-task head that emits the full ⟨T⟩/⟨W⟩/⟨S⟩/⟨G⟩ format.
 Constrained decoding experiments (grammar-of-the-format enforcement vs free
 generation + repair). Annotation-specific eval metrics (segmentation F1,
 ruby accuracy, rule F1).
 
-## M9 — On-device inference + demo
+## M9 — On-device inference + demo  ✅ DONE
 int8/int4 quantization, CPU benchmarks (tokens/sec, quality deltas),
 minimal web UI with hover glosses, ruby rendering, attention-alignment
 visualization, JMdict lookup integration.
 
-## M10 — Polish for publication
+## M10 — Polish for publication  ✅ DONE
 README as research log, model cards, reproduce-from-scratch instructions,
 W&B reports linked, blog-style writeup.
 

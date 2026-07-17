@@ -1,0 +1,197 @@
+[
+  {
+    "run": "m5-all-rope-16k-tied",
+    "test_set": "kftt-test",
+    "seed": 1,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 46.987839606330525,
+      "bleu": 20.49556642083877,
+      "comet": 0.7714385851190008
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m5-all-rope-16k-tied",
+    "test_set": "kftt-test",
+    "seed": 3,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 46.885412364556736,
+      "bleu": 20.587154719361855,
+      "comet": 0.7681773242251626
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m5-all-rope-16k-untied",
+    "test_set": "kftt-test",
+    "seed": 1,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 47.001041893793165,
+      "bleu": 21.00377887852604,
+      "comet": 0.7701454500956783
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m5-all-rope-16k-untied",
+    "test_set": "kftt-test",
+    "seed": 3,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 46.93177460563854,
+      "bleu": 20.567118539173354,
+      "comet": 0.7675147815254227
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m5-all-rope-32k-tied",
+    "test_set": "kftt-test",
+    "seed": 1,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 46.87996103603287,
+      "bleu": 20.771547520337162,
+      "comet": 0.7658206374609264
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m5-all-rope-32k-tied",
+    "test_set": "kftt-test",
+    "seed": 3,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 47.54474032586041,
+      "bleu": 21.71475960930526,
+      "comet": 0.7687802077367388
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m5-all-rope-8k-tied",
+    "test_set": "kftt-test",
+    "seed": 2,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 46.52929952303827,
+      "bleu": 20.242041880021745,
+      "comet": 0.762611193775103
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m5-all-sinusoidal-16k-tied",
+    "test_set": "kftt-test",
+    "seed": 2,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 46.221616827192676,
+      "bleu": 20.325874293657677,
+      "comet": 0.7632171497005841
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m5-all-rope-16k-tied",
+    "test_set": "kftt-test",
+    "seed": 2,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 46.9117658591847,
+      "bleu": 20.933462660732403,
+      "comet": 0.7656177859881829
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m5-all-rope-16k-untied",
+    "test_set": "kftt-test",
+    "seed": 2,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 47.03198825373895,
+      "bleu": 20.779722995355787,
+      "comet": 0.7691132986596946
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m5-all-rope-32k-tied",
+    "test_set": "kftt-test",
+    "seed": 2,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 47.49913504612594,
+      "bleu": 21.120701413281957,
+      "comet": 0.767876627398976
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m5-all-rope-8k-tied",
+    "test_set": "kftt-test",
+    "seed": 1,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 45.96891768188399,
+      "bleu": 19.828705058070963,
+      "comet": 0.763493247844022
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m5-all-rope-8k-tied",
+    "test_set": "kftt-test",
+    "seed": 3,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 46.230567747797764,
+      "bleu": 20.061013403219444,
+      "comet": 0.7635809864720394
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m5-all-sinusoidal-16k-tied",
+    "test_set": "kftt-test",
+    "seed": 1,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 46.77114593526509,
+      "bleu": 20.807965405018656,
+      "comet": 0.7664792286938634
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  },
+  {
+    "run": "m5-all-sinusoidal-16k-tied",
+    "test_set": "kftt-test",
+    "seed": 3,
+    "beam": 4,
+    "n": 1160,
+    "metrics": {
+      "chrf": 46.3883160830773,
+      "bleu": 20.195314558988326,
+      "comet": 0.7639591801012384
+    },
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0"
+  }
+]

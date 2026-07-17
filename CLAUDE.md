@@ -50,6 +50,11 @@ scripts/         entry points (train.py, translate.py, annotate.py)
 - Python ≥3.11, `uv` for env management, `ruff` for lint+format,
   `pytest` for tests, type hints everywhere, dataclasses for records.
 - Commits: conventional-commit style, small and topical.
+- **One branch per milestone.** Each milestone Mn is developed on its own git
+  branch named `mn` (`m4`, `m5`, …), branched from the previous milestone's
+  branch (or `main`). Start a new branch when beginning a new milestone; never
+  develop milestone work directly on `main`. Merge to `main` when the milestone
+  is done (human-reviewed).
 - Every experiment gets a config file in `configs/` — no hyperparameters
   hardcoded in scripts.
 - Docs are living: when we make a design decision, append an ADR to
@@ -73,13 +78,62 @@ uv run python scripts/train.py --config configs/<name>.yaml
 
 ## Current status
 
-Milestone: **M4 — evaluation harness**. M0 (format), M1 (BPE tokenizer), M2
-(22.1M-pair corpus), and M3 (52.3M from-scratch transformer, KFTT-test chrF 47.2
-vs 11.9 baseline) are done. See docs/ROADMAP.md for the full plan and
-docs/DECISIONS.md for open questions (grammar-rule inventory scope; tokenizer
-vocab strategy — ADR-012, final call at M5). Corpus skews long/web-domain
-(JParaCrawl ~86%), so KFTT formal-domain eval trails the mixed-test number by
-~8 chrF — a KFTT-weighted training mix is a candidate M3.1/M5 run.
+Milestone: **M10 — polish for publication — DONE. Project M0–M10 complete.**
+(branch `m10`, off `m9`.) README.md rewritten as the research log; docs/
+MODEL_CARDS.md added; ROADMAP marked complete. The from-scratch on-device Japanese
+reading engine is done end-to-end (rough annotation quality — the 6.8k-data
+baseline; improve via more silver data + constrained decoding). All milestone
+branches `m5`→`m10` pushed, ready for human review + merge to main.
+Previously: **M9 — on-device inference + demo — DONE** (branch `m9`, off `m8`).
+docs/reports/m9-ondevice-demo.md: interactive reading-engine demo (tools/demo/,
+published Artifact — mincho + real ruby furigana, hover glosses, grammar
+highlight); runtime entry scripts/annotate.py (Ja → full annotation, ZERO NLP
+deps, rule #1); on-device CPU inference 521 tok/s @ 40% lint-pass (= GPU) — bf16
+autocast MANDATORY on cpu+cuda (fp32 diverges to 0% on this fragile small model);
+int8 2.4× smaller (209→85MB). Previously: **M8 — annotation model (e2e de-risk) —
+DONE** (branch `m8`, off `m7`).
+Previously: **M7 — annotation supervision + grammar-1.0 — DONE** (branch `m7`),
+**M6 — distillation dry run — DONE** (`m6`), **M5 — ablations — DONE** (`m5`). All
+per-milestone branches, ready for human review + merge to main.
+
+M7 (docs/reports/m7-annotation.md, ADR-011): grammar-1.0 = 120 rules (register/
+copula rules dropped — ⟨G⟩ marks only non-obvious grammar). Hybrid pipeline under
+tools/annotate/ (MeCab/UniDic deterministic ⟨T⟩ + luna teacher for gloss/⟨W⟩/⟨S⟩/⟨G⟩,
+linter gate). Stage-1: 10k KFTT sentences → **9,388 silver annotations at 93.9% gate**
+(~$30 luna Batch; auto-repair in assemble.py lifted 83%→93.9% free). M8 (docs/reports/
+m8-annotation-model.md): from-scratch model (Ja → full wire format), trained FREE on
+6.8k silver (local 4090, $0). **e2e proven** — parse 77% / lint-pass 38% / reconstruct
+40%; valid structure, rough content (minimum-spend, per Jake). Improve later: expand
+silver + constrained decoding + annotation F1 metrics. Next: M9 (on-device) or the
+quality-improvement phase. M0 (format), M1 (BPE tokenizer), M2 (22.1M-pair
+corpus), M3 (52.3M from-scratch transformer, KFTT-test chrF 47.2 vs 11.9
+baseline), M4 (chrF/BLEU/COMET eval harness + seed-variance protocol,
+docs/reports/m4-results.md), and M5 (three-axis ablation sweep,
+docs/reports/ablations-1.md), and M6 (KD distillation dry run,
+docs/reports/m6-distillation.md) are done. Next: **M7** (start a new `m7` branch
+off `m6`) — annotation supervision + grammar inventory. Work happens on
+per-milestone branches.
+
+M6 outcome (docs/reports/m6-distillation.md, ADR-017): teacher = gpt-5.6-luna
+(bake-off winner, Batch mode ~$30 for 185k KFTT sentences). Sequence-level KD,
+matched arms (same JA, teacher-En vs human-En), 2 seeds: in-domain kftt-test the
+KD student loses on surface (BLEU −5.06) but is **COMET-tied** — a reference-style
+artifact; on mixed m2-test KD **wins all three** (COMET +0.0215). KD buys
+generalization + semantic parity, not an in-domain surface win. Distillation is
+viable → proceed to M7 with luna. Teacher stack (tools/teacher/: Batch client,
+chunking, hygiene, matched-arm harness) is proven. Data (teacher_en.jsonl, pairs)
+on local disk; S3 backup pending an aws re-auth.
+
+M5 outcome (docs/reports/ablations-1.md, ADR-016; 15 runs = 5 configs × 3 seeds,
+100k steps, run on 2×8-GPU vast.ai boxes via scripts/vast_up.sh, ~$34):
+config into M6 is **RoPE · 16k · three-way-tied** (the M3 base, now empirically
+justified). RoPE > sinusoidal (clean, non-overlapping seeds); tying is free;
+vocab 16k is the footprint/quality sweet spot (resolves ADR-012). Open follow-up:
+the RoPE length-extrapolation eval (needs a >128-token test set; checkpoints
+preserved locally). Corpus skews long/web-domain (JParaCrawl ~86%), so KFTT
+formal-domain eval trails the mixed-test number by ~8 chrF — a KFTT-weighted
+training mix remains a candidate run. Cloud sweeps: docs/CLOUD.md (one-command
+scripts/vast_up.sh + gotchas learned on the first live run).
 
 ## Key context from design discussions
 
