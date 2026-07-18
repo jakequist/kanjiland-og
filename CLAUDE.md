@@ -76,6 +76,14 @@ uv run ruff check --fix .      # lint
 uv run python scripts/train.py --config configs/<name>.yaml
 ```
 
+**Restoring data/models on a fresh machine** (corpus + weights are gitignored;
+private S3 backup — needs this project's AWS creds). See **docs/DATA.md**:
+```bash
+aws s3 sync s3://kanjiland/data/raw data/raw
+aws s3 sync s3://kanjiland/data/processed data/processed
+aws s3 sync s3://kanjiland/checkpoints checkpoints
+```
+
 ## Current status
 
 Milestone: **M10 — polish for publication — DONE. Project M0–M10 complete.**

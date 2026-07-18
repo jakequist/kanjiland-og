@@ -137,7 +137,8 @@ uv run python scripts/annotate.py --config configs/m8_annotate.yaml \
 ```
 
 Offline data-gen (silver annotations, ablation sweeps) lives under `tools/` and
-`scripts/ablate.py`; the cloud runbook is [`docs/CLOUD.md`](docs/CLOUD.md).
+`scripts/ablate.py`; the cloud runbook is [`docs/CLOUD.md`](docs/CLOUD.md). Large
+artifacts (corpus, weights) restore from a private S3 backup — [`docs/DATA.md`](docs/DATA.md).
 
 ## Where it stands (honest)
 
