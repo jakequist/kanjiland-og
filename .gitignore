@@ -97,3 +97,11 @@ Thumbs.db
 
 # Run logs (ablation sweeps)
 /logs/
+
+# Milestone-generated data (backed up to S3, see docs/DATA.md) — not for git
+/data/processed/m6_kd/
+/data/processed/m7_annot/silver.jsonl
+/data/processed/m7_annot/batch/
+/data/processed/m8_annot/
+# top-level training/sweep logs
+/*.log
