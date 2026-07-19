@@ -119,10 +119,23 @@ raw Japanese ─▶ from-scratch BPE ─▶ from-scratch transformer ─▶ tagg
 ```
 
 ```
-docs/     FORMAT_SPEC · ROADMAP · DECISIONS · GRAMMAR_RULES · reports/
-src/kanjiland/  format · tokenizer · data · model · train · eval   (the shipped core)
-tools/    offline-only: teacher distillation, MeCab annotation, the demo
-configs/  one YAML per experiment      scripts/  train · evaluate · annotate
+docs/     
+  FORMAT_SPEC  
+  ROADMAP  
+  DECISIONS  
+  GRAMMAR_RULES  
+  reports/
+src/
+  kanjiland/  
+    format  
+    tokenizer  
+    data  
+    model  
+    train  
+    eval   
+tools/           
+configs/               
+scripts/         
 ```
 
 See [`docs/MODEL_CARDS.md`](docs/MODEL_CARDS.md) for the models and
