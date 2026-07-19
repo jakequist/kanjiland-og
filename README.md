@@ -1,7 +1,17 @@
-# Kanjiland
+# Kanjiland OG 
 
-A **from-scratch Japanese reading-comprehension engine**. Raw Japanese text in →
-word segmentation, furigana, dictionary forms, contextual English glosses, sentence
+This repo is a personal research project.  I offer it here on github for any interested parties, but it's really just a project to help me learn some of the finer details of Transformers. 
+That is, in this project we build a 52M parameter transfomer that not only translates japanese to english (a relatively solved problem), but also annotates the source japanese text with grammar and furigana etc. 
+That latter half is the real purpose of [kanjiland](https://kanji.land): to help intermediate and advanced japanese learners get better at understanding advanced grammar and vocabulary. 
+
+This repo is called Kanjiland OG (Original Gangster) because it's my original research project. 
+If you're actually reading this, then you should probably check out [kanjiland-ft](https://github.com/jakequist/kanjiland-ft), the fine-tuned variant.  
+It's a proper fine-tuned model based off of Qwen2.5 and _should_ offer superior performance. 
+
+---
+
+The key novelty of this project is annotating translated japanese with grammar and furigana. 
+Raw Japanese text in → word segmentation, furigana, dictionary forms, contextual English glosses, sentence
 translations, and grammar-pattern annotations out — in a compact tagged format
 designed for a small model to generate on-device.
 
